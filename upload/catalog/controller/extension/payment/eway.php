@@ -30,6 +30,8 @@ class ControllerExtensionPaymentEway extends Controller {
 
 		$amount = $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false);
 
+		$data['text_testing'] = '';
+
 		if ($this->config->get('payment_eway_test')) {
 			$data['text_testing'] = $this->language->get('text_testing');
 			$data['Endpoint'] = 'Sandbox';
@@ -107,7 +109,7 @@ class ControllerExtensionPaymentEway extends Controller {
 		$request->Payment->InvoiceReference = (string)substr($this->config->get('config_name'), 0, 40) . ' - #' . $order_info['order_id'];
 		$request->Payment->CurrencyCode = $order_info['currency_code'];
 
-		$request->RedirectUrl = $this->url->link('extension/payment/eway/callback', '', true);
+		$request->RedirectUrl = $this->url->link('extension/payment/eway/callback');
 		if ($this->config->get('payment_eway_transaction_method') == 'auth') {
 			$request->Method = 'Authorise';
 		} else {
@@ -145,7 +147,7 @@ class ControllerExtensionPaymentEway extends Controller {
 			$data['error'] = $lbl_error;
 		} else {
 			if ($this->config->get('payment_eway_paymode') == 'iframe') {
-				$data['callback'] = $this->url->link('extension/payment/eway/callback', 'AccessCode=' . $result->AccessCode, true);
+				$data['callback'] = $this->url->link('extension/payment/eway/callback', 'AccessCode=' . $result->AccessCode);
 				$data['SharedPaymentUrl'] = $result->SharedPaymentUrl;
 			}
 			$data['action'] = $result->FormActionURL;
@@ -208,10 +210,10 @@ class ControllerExtensionPaymentEway extends Controller {
 
 			if ($is_error) {
 				if ($fraud) {
-					$this->response->redirect($this->url->link('checkout/failure', '', true));
+					$this->response->redirect($this->url->link('checkout/failure'));
 				} else {
 					$this->session->data['error'] = $this->language->get('text_transaction_failed');
-					$this->response->redirect($this->url->link('checkout/checkout', '', true));
+					$this->response->redirect($this->url->link('checkout/checkout'));
 				}
 			} else {
 				$order_id = $result->Options[0]->Value;
@@ -267,7 +269,7 @@ class ControllerExtensionPaymentEway extends Controller {
 					$this->model_extension_payment_eway->addFullCard($this->session->data['order_id'], $card_data);
 				}
 
-				$this->response->redirect($this->url->link('checkout/success', '', true));
+				$this->response->redirect($this->url->link('checkout/success'));
 			}
 		}
 	}
