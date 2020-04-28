@@ -83,10 +83,10 @@ class ControllerExtensionExtensionReport extends Controller {
 			foreach ($files as $file) {
 				$extension = basename($file, '.php');
 
-				$this->load->language('extension/report/' . $extension, 'extension');
+				$this->load->language('extension/report/' . $extension, $extension);
 
 				$data['extensions'][] = array(
-					'name'       => $this->language->get('extension')->get('heading_title'),
+					'name'       => $this->language->get($extension . '_heading_title'),
 					'status'     => $this->config->get('report_' . $extension . '_status') ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),
 					'sort_order' => $this->config->get('report_' . $extension . '_sort_order'),
 					'install'    => $this->url->link('extension/extension/report/install', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension),
@@ -96,6 +96,8 @@ class ControllerExtensionExtensionReport extends Controller {
 				);
 			}
 		}
+
+		$data['promotion'] = $this->load->controller('extension/extension/promotion');
 
 		$this->response->setOutput($this->load->view('extension/extension/report', $data));
 	}

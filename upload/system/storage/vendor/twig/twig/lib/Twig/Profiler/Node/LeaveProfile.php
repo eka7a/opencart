@@ -3,7 +3,7 @@
 /*
  * This file is part of Twig.
  *
- * (c) 2015 Fabien Potencier
+ * (c) Fabien Potencier
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -18,12 +18,9 @@ class Twig_Profiler_Node_LeaveProfile extends Twig_Node
 {
     public function __construct($varName)
     {
-        parent::__construct(array(), array('var_name' => $varName));
+        parent::__construct([], ['var_name' => $varName]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function compile(Twig_Compiler $compiler)
     {
         $compiler
@@ -32,3 +29,5 @@ class Twig_Profiler_Node_LeaveProfile extends Twig_Node
         ;
     }
 }
+
+class_alias('Twig_Profiler_Node_LeaveProfile', 'Twig\Profiler\Node\LeaveProfileNode', false);

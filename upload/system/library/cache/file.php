@@ -29,7 +29,13 @@ class File {
 
 			flock($handle, LOCK_SH);
 
-			$data = fread($handle, filesize($files[0]));
+			$size = filesize($files[0]);
+
+			if ($size > 0) {
+				$data = fread($handle, $size);
+			} else {
+				$data = '';
+			}
 
 			flock($handle, LOCK_UN);
 
@@ -64,7 +70,9 @@ class File {
 
 		if ($files) {
 			foreach ($files as $file) {
-				unlink($file);
+				if (!@unlink($file)) {
+					clearstatcache(false, $file);
+				}
 			}
 		}
 	}

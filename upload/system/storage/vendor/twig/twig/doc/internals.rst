@@ -38,13 +38,13 @@ an instance of ``Twig_Token``, and the stream is an instance of
 * ``Twig_Token::STRING_TYPE``: A string in an expression;
 * ``Twig_Token::OPERATOR_TYPE``: An operator;
 * ``Twig_Token::PUNCTUATION_TYPE``: A punctuation sign;
-* ``Twig_Token::INTERPOLATION_START_TYPE``, ``Twig_Token::INTERPOLATION_END_TYPE`` (as of Twig 1.5): Delimiters for string interpolation;
+* ``Twig_Token::INTERPOLATION_START_TYPE``, ``Twig_Token::INTERPOLATION_END_TYPE``: Delimiters for string interpolation;
 * ``Twig_Token::EOF_TYPE``: Ends of template.
 
 You can manually convert a source code into a token stream by calling the
 ``tokenize()`` method of an environment::
 
-    $stream = $twig->tokenize($source, $identifier);
+    $stream = $twig->tokenize(new Twig_Source($source, $identifier));
 
 As the stream has a ``__toString()`` method, you can have a textual
 representation of it by echoing the object::
@@ -120,11 +120,11 @@ using)::
     /* Hello {{ name }} */
     class __TwigTemplate_1121b6f109fe93ebe8c6e22e3712bceb extends Twig_Template
     {
-        protected function doDisplay(array $context, array $blocks = array())
+        protected function doDisplay(array $context, array $blocks = [])
         {
             // line 1
             echo "Hello ";
-            echo twig_escape_filter($this->env, isset($context["name"]) ? $context["name"] : null), "html", null, true);
+            echo twig_escape_filter($this->env, (isset($context["name"]) ? $context["name"] : null), "html", null, true);
         }
 
         // some more code

@@ -39,7 +39,7 @@ class ControllerMarketplaceInstaller extends Controller {
 		
 		$this->load->model('setting/extension');
 		
-		$results = $this->model_setting_extension->getExtensionInstalls(($page - 1) * 10, 10);
+		$results = $this->model_setting_extension->getInstalls(($page - 1) * 10, 10);
 		
 		foreach ($results as $result) {
 			$data['histories'][] = array(
@@ -49,15 +49,14 @@ class ControllerMarketplaceInstaller extends Controller {
 			);
 		}
 		
-		$history_total = $this->model_setting_extension->getTotalExtensionInstalls();
+		$history_total = $this->model_setting_extension->getTotalInstalls();
 
-		$pagination = new Pagination();
-		$pagination->total = $history_total;
-		$pagination->page = $page;
-		$pagination->limit = 10;
-		$pagination->url = $this->url->link('marketplace/installer/history', 'user_token=' . $this->session->data['user_token'] . '&page={page}');
-
-		$data['pagination'] = $pagination->render();
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $history_total,
+			'page'  => $page,
+			'limit' => 10,
+			'url'   => $this->url->link('marketplace/installer/history', 'user_token=' . $this->session->data['user_token'] . '&page={page}')
+		));
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($history_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($history_total - 10)) ? $history_total : ((($page - 1) * 10) + 10), $history_total, ceil($history_total / 10));
 				
@@ -156,7 +155,7 @@ class ControllerMarketplaceInstaller extends Controller {
 			if (is_file($file)) {
 				$this->load->model('setting/extension');
 				
-				$extension_install_id = $this->model_setting_extension->addExtensionInstall($this->request->files['file']['name']);
+				$extension_install_id = $this->model_setting_extension->addInstall($this->request->files['file']['name']);
 				
 				$json['text'] = $this->language->get('text_install');
 

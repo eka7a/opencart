@@ -163,8 +163,8 @@ class ControllerLocalisationGeoZone extends Controller {
 		$filter_data = array(
 			'sort'  => $sort,
 			'order' => $order,
-			'start' => ($page - 1) * $this->config->get('config_limit_admin'),
-			'limit' => $this->config->get('config_limit_admin')
+			'start' => ($page - 1) * $this->config->get('config_pagination'),
+			'limit' => $this->config->get('config_pagination')
 		);
 
 		$geo_zone_total = $this->model_localisation_geo_zone->getTotalGeoZones();
@@ -225,15 +225,14 @@ class ControllerLocalisationGeoZone extends Controller {
 			$url .= '&order=' . $this->request->get['order'];
 		}
 
-		$pagination = new Pagination();
-		$pagination->total = $geo_zone_total;
-		$pagination->page = $page;
-		$pagination->limit = $this->config->get('config_limit_admin');
-		$pagination->url = $this->url->link('localisation/geo_zone', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}');
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $geo_zone_total,
+			'page'  => $page,
+			'limit' => $this->config->get('config_pagination'),
+			'url'   => $this->url->link('localisation/geo_zone', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
+		));
 
-		$data['pagination'] = $pagination->render();
-
-		$data['results'] = sprintf($this->language->get('text_pagination'), ($geo_zone_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($geo_zone_total - $this->config->get('config_limit_admin'))) ? $geo_zone_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $geo_zone_total, ceil($geo_zone_total / $this->config->get('config_limit_admin')));
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($geo_zone_total) ? (($page - 1) * $this->config->get('config_pagination')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination')) > ($geo_zone_total - $this->config->get('config_pagination'))) ? $geo_zone_total : ((($page - 1) * $this->config->get('config_pagination')) + $this->config->get('config_pagination')), $geo_zone_total, ceil($geo_zone_total / $this->config->get('config_pagination')));
 
 		$data['sort'] = $sort;
 		$data['order'] = $order;
@@ -328,7 +327,7 @@ class ControllerLocalisationGeoZone extends Controller {
 
 		if (isset($this->request->post['zone_to_geo_zone'])) {
 			$data['zone_to_geo_zones'] = $this->request->post['zone_to_geo_zone'];
-		} elseif (isset($this->request->get['geo_zone_id'])) {
+		} elseif (!empty($geo_zone_info)) {
 			$data['zone_to_geo_zones'] = $this->model_localisation_geo_zone->getZoneToGeoZones($this->request->get['geo_zone_id']);
 		} else {
 			$data['zone_to_geo_zones'] = array();

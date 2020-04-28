@@ -19,7 +19,7 @@ class Document {
 	private $scripts = array();
 
 	/**
-     * 
+     *
      *
      * @param	string	$title
      */
@@ -28,8 +28,8 @@ class Document {
 	}
 
 	/**
-     * 
-	 * 
+     *
+	 *
 	 * @return	string
      */
 	public function getTitle() {
@@ -37,7 +37,7 @@ class Document {
 	}
 
 	/**
-     * 
+     *
      *
      * @param	string	$description
      */
@@ -46,10 +46,10 @@ class Document {
 	}
 
 	/**
-     * 
+     *
      *
      * @param	string	$description
-	 * 
+	 *
 	 * @return	string
      */
 	public function getDescription() {
@@ -57,7 +57,7 @@ class Document {
 	}
 
 	/**
-     * 
+     *
      *
      * @param	string	$keywords
      */
@@ -67,15 +67,15 @@ class Document {
 
 	/**
      *
-	 * 
+	 *
 	 * @return	string
      */
 	public function getKeywords() {
 		return $this->keywords;
 	}
-	
+
 	/**
-     * 
+     *
      *
      * @param	string	$href
 	 * @param	string	$rel
@@ -88,8 +88,8 @@ class Document {
 	}
 
 	/**
-     * 
-	 * 
+     *
+	 *
 	 * @return	array
      */
 	public function getLinks() {
@@ -97,7 +97,7 @@ class Document {
 	}
 
 	/**
-     * 
+     *
      *
      * @param	string	$href
 	 * @param	string	$rel
@@ -112,8 +112,8 @@ class Document {
 	}
 
 	/**
-     * 
-	 * 
+     *
+	 *
 	 * @return	array
      */
 	public function getStyles() {
@@ -121,25 +121,25 @@ class Document {
 	}
 
 	/**
-     * 
+     *
      *
      * @param	string	$href
-	 * @param	string	$postion
+	 * @param	string	$position
      */
-	public function addScript($href, $postion = 'header') {
-		$this->scripts[$postion][$href] = $href;
+	public function addScript($href, $position = 'header') {
+		$this->scripts[$position][$href] = $href;
 	}
 
 	/**
-     * 
      *
-     * @param	string	$postion
-	 * 
+     *
+     * @param	string	$position
+	 *
 	 * @return	array
      */
-	public function getScripts($postion = 'header') {
-		if (isset($this->scripts[$postion])) {
-			return $this->scripts[$postion];
+	public function getScripts($position = 'header') {
+		if (isset($this->scripts[$position])) {
+			return $this->scripts[$position];
 		} else {
 			return array();
 		}

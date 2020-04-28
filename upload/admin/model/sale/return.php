@@ -16,7 +16,7 @@ class ModelSaleReturn extends Model {
 	}
 
 	public function getReturn($return_id) {
-		$query = $this->db->query("SELECT DISTINCT *, (SELECT CONCAT(c.firstname, ' ', c.lastname) FROM " . DB_PREFIX . "customer c WHERE c.customer_id = r.customer_id) AS customer, (SELECT rs.name FROM " . DB_PREFIX . "return_status rs WHERE rs.return_status_id = r.return_status_id AND rs.language_id = '" . (int)$this->config->get('config_language_id') . "') AS return_status FROM `" . DB_PREFIX . "return` r WHERE r.return_id = '" . (int)$return_id . "'");
+		$query = $this->db->query("SELECT DISTINCT *, (SELECT CONCAT(c.firstname, ' ', c.lastname) FROM " . DB_PREFIX . "customer c WHERE c.customer_id = r.customer_id) AS customer, (SELECT c.language_id FROM " . DB_PREFIX . "customer c WHERE c.customer_id = r.customer_id) AS language_id, (SELECT rs.name FROM " . DB_PREFIX . "return_status rs WHERE rs.return_status_id = r.return_status_id AND rs.language_id = '" . (int)$this->config->get('config_language_id') . "') AS return_status FROM `" . DB_PREFIX . "return` r WHERE r.return_id = '" . (int)$return_id . "'");
 
 		return $query->row;
 	}
@@ -68,7 +68,7 @@ class ModelSaleReturn extends Model {
 			'customer',
 			'r.product',
 			'r.model',
-			'status',
+			'return_status',
 			'r.date_added',
 			'r.date_modified'
 		);
@@ -166,12 +166,12 @@ class ModelSaleReturn extends Model {
 		return $query->row['total'];
 	}
 	
-	public function addReturnHistory($return_id, $return_status_id, $comment, $notify) {
+	public function addHistory($return_id, $return_status_id, $comment, $notify) {
 		$this->db->query("UPDATE `" . DB_PREFIX . "return` SET `return_status_id` = '" . (int)$return_status_id . "', date_modified = NOW() WHERE return_id = '" . (int)$return_id . "'");
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "return_history` SET `return_id` = '" . (int)$return_id . "', return_status_id = '" . (int)$return_status_id . "', notify = '" . (int)$notify . "', comment = '" . $this->db->escape(strip_tags($comment)) . "', date_added = NOW()");
 	}
 
-	public function getReturnHistories($return_id, $start = 0, $limit = 10) {
+	public function getHistories($return_id, $start = 0, $limit = 10) {
 		if ($start < 0) {
 			$start = 0;
 		}
@@ -185,13 +185,13 @@ class ModelSaleReturn extends Model {
 		return $query->rows;
 	}
 
-	public function getTotalReturnHistories($return_id) {
+	public function getTotalHistories($return_id) {
 		$query = $this->db->query("SELECT COUNT(*) AS total FROM " . DB_PREFIX . "return_history WHERE return_id = '" . (int)$return_id . "'");
 
 		return $query->row['total'];
 	}
 
-	public function getTotalReturnHistoriesByReturnStatusId($return_status_id) {
+	public function getTotalHistoriesByReturnStatusId($return_status_id) {
 		$query = $this->db->query("SELECT COUNT(*) AS total FROM " . DB_PREFIX . "return_history WHERE return_status_id = '" . (int)$return_status_id . "'");
 
 		return $query->row['total'];

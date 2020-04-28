@@ -163,8 +163,8 @@ class ControllerLocalisationOrderStatus extends Controller {
 		$filter_data = array(
 			'sort'  => $sort,
 			'order' => $order,
-			'start' => ($page - 1) * $this->config->get('config_limit_admin'),
-			'limit' => $this->config->get('config_limit_admin')
+			'start' => ($page - 1) * $this->config->get('config_pagination'),
+			'limit' => $this->config->get('config_pagination')
 		);
 
 		$order_status_total = $this->model_localisation_order_status->getTotalOrderStatuses();
@@ -223,15 +223,14 @@ class ControllerLocalisationOrderStatus extends Controller {
 			$url .= '&order=' . $this->request->get['order'];
 		}
 
-		$pagination = new Pagination();
-		$pagination->total = $order_status_total;
-		$pagination->page = $page;
-		$pagination->limit = $this->config->get('config_limit_admin');
-		$pagination->url = $this->url->link('localisation/order_status', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}');
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $order_status_total,
+			'page'  => $page,
+			'limit' => $this->config->get('config_pagination'),
+			'url'   => $this->url->link('localisation/order_status', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
+		));
 
-		$data['pagination'] = $pagination->render();
-
-		$data['results'] = sprintf($this->language->get('text_pagination'), ($order_status_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($order_status_total - $this->config->get('config_limit_admin'))) ? $order_status_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $order_status_total, ceil($order_status_total / $this->config->get('config_limit_admin')));
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($order_status_total) ? (($page - 1) * $this->config->get('config_pagination')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination')) > ($order_status_total - $this->config->get('config_pagination'))) ? $order_status_total : ((($page - 1) * $this->config->get('config_pagination')) + $this->config->get('config_pagination')), $order_status_total, ceil($order_status_total / $this->config->get('config_pagination')));
 
 		$data['sort'] = $sort;
 		$data['order'] = $order;
@@ -299,7 +298,7 @@ class ControllerLocalisationOrderStatus extends Controller {
 		if (isset($this->request->post['order_status'])) {
 			$data['order_status'] = $this->request->post['order_status'];
 		} elseif (isset($this->request->get['order_status_id'])) {
-			$data['order_status'] = $this->model_localisation_order_status->getOrderStatusDescriptions($this->request->get['order_status_id']);
+			$data['order_status'] = $this->model_localisation_order_status->getDescriptions($this->request->get['order_status_id']);
 		} else {
 			$data['order_status'] = array();
 		}
@@ -354,7 +353,7 @@ class ControllerLocalisationOrderStatus extends Controller {
 				$this->error['warning'] = sprintf($this->language->get('error_order'), $order_total);
 			}
 
-			$order_total = $this->model_sale_order->getTotalOrderHistoriesByOrderStatusId($order_status_id);
+			$order_total = $this->model_sale_order->getTotalHistoriesByOrderStatusId($order_status_id);
 
 			if ($order_total) {
 				$this->error['warning'] = sprintf($this->language->get('error_order'), $order_total);

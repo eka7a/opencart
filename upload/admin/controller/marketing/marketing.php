@@ -168,7 +168,7 @@ class ControllerMarketingMarketing extends Controller {
 		if (isset($this->request->get['sort'])) {
 			$sort = $this->request->get['sort'];
 		} else {
-			$sort = 'name';
+			$sort = 'm.name';
 		}
 
 		if (isset($this->request->get['order'])) {
@@ -236,8 +236,8 @@ class ControllerMarketingMarketing extends Controller {
 			'filter_date_added' => $filter_date_added,
 			'sort'              => $sort,
 			'order'             => $order,
-			'start'             => ($page - 1) * $this->config->get('config_limit_admin'),
-			'limit'             => $this->config->get('config_limit_admin')
+			'start'             => ($page - 1) * $this->config->get('config_pagination'),
+			'limit'             => $this->config->get('config_pagination')
 		);
 
 		$marketing_total = $this->model_marketing_marketing->getTotalMarketings($filter_data);
@@ -328,15 +328,14 @@ class ControllerMarketingMarketing extends Controller {
 			$url .= '&order=' . $this->request->get['order'];
 		}
 
-		$pagination = new Pagination();
-		$pagination->total = $marketing_total;
-		$pagination->page = $page;
-		$pagination->limit = $this->config->get('config_limit_admin');
-		$pagination->url = $this->url->link('marketing/marketing', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}');
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $marketing_total,
+			'page'  => $page,
+			'limit' => $this->config->get('config_pagination'),
+			'url'   => $this->url->link('marketing/marketing', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
+		));
 
-		$data['pagination'] = $pagination->render();
-
-		$data['results'] = sprintf($this->language->get('text_pagination'), ($marketing_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($marketing_total - $this->config->get('config_limit_admin'))) ? $marketing_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $marketing_total, ceil($marketing_total / $this->config->get('config_limit_admin')));
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($marketing_total) ? (($page - 1) * $this->config->get('config_pagination')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination')) > ($marketing_total - $this->config->get('config_pagination'))) ? $marketing_total : ((($page - 1) * $this->config->get('config_pagination')) + $this->config->get('config_pagination')), $marketing_total, ceil($marketing_total / $this->config->get('config_pagination')));
 
 		$data['filter_name'] = $filter_name;
 		$data['filter_code'] = $filter_code;
@@ -358,7 +357,7 @@ class ControllerMarketingMarketing extends Controller {
 		$data['user_token'] = $this->session->data['user_token'];
 
 		if (isset($this->request->get['marketing_id'])) {
-			$data['marketing_id'] = $this->request->get['marketing_id'];
+			$data['marketing_id'] = (int)$this->request->get['marketing_id'];
 		} else {
 			$data['marketing_id'] = 0;
 		}
@@ -542,13 +541,12 @@ class ControllerMarketingMarketing extends Controller {
 
 		$report_total = $this->model_marketing_marketing->getTotalReports($marketing_id);
 
-		$pagination = new Pagination();
-		$pagination->total = $report_total;
-		$pagination->page = $page;
-		$pagination->limit = 10;
-		$pagination->url = $this->url->link('marketing/marketing/report', 'user_token=' . $this->session->data['user_token'] . '&marketing_id=' . $marketing_id . '&page={page}');
-
-		$data['pagination'] = $pagination->render();
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $report_total,
+			'page'  => $page,
+			'limit' => 10,
+			'url'   => $this->url->link('marketing/marketing/report', 'user_token=' . $this->session->data['user_token'] . '&marketing_id=' . $marketing_id . '&page={page}')
+		));
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($report_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($report_total - 10)) ? $report_total : ((($page - 1) * 10) + 10), $report_total, ceil($report_total / 10));
 

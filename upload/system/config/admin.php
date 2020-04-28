@@ -1,7 +1,6 @@
 <?php
 // Site
 $_['site_url']          = HTTP_SERVER;
-$_['site_ssl']          = HTTPS_SERVER;
 
 // Database
 $_['db_autostart']      = true;
@@ -13,10 +12,11 @@ $_['db_database']       = DB_DATABASE;
 $_['db_port']           = DB_PORT;
 
 // Session
-$_['session_autostart'] = true;
+$_['session_autostart'] = false;
+$_['session_engine']    = 'db';
 
-// Template
-$_['template_cache']    = true;
+// Error
+$_['error_display']     = true;
 
 // Actions
 $_['action_pre_action'] = array(
@@ -29,10 +29,10 @@ $_['action_pre_action'] = array(
 );
 
 // Actions
-$_['action_default'] = 'common/dashboard';
+$_['action_default']    = 'common/dashboard';
 
 // Action Events
-$_['action_event'] = array(
+$_['action_event']      = array(
 	'controller/*/before' => array(
 		'event/language/before'
 	),
@@ -40,11 +40,7 @@ $_['action_event'] = array(
 		'event/language/after'
 	),
 	'view/*/before' => array(
-		999  => 'event/language',
-		1000 => 'event/theme'
-	),
-	'view/*/before' => array(
-		'event/language'
+		999  => 'event/language'
 	),
 	//'model/*/after' => array(
 	//	'event/debug/before'

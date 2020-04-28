@@ -163,8 +163,8 @@ class ControllerLocalisationStockStatus extends Controller {
 		$filter_data = array(
 			'sort'  => $sort,
 			'order' => $order,
-			'start' => ($page - 1) * $this->config->get('config_limit_admin'),
-			'limit' => $this->config->get('config_limit_admin')
+			'start' => ($page - 1) * $this->config->get('config_pagination'),
+			'limit' => $this->config->get('config_pagination')
 		);
 
 		$stock_status_total = $this->model_localisation_stock_status->getTotalStockStatuses();
@@ -223,15 +223,14 @@ class ControllerLocalisationStockStatus extends Controller {
 			$url .= '&order=' . $this->request->get['order'];
 		}
 
-		$pagination = new Pagination();
-		$pagination->total = $stock_status_total;
-		$pagination->page = $page;
-		$pagination->limit = $this->config->get('config_limit_admin');
-		$pagination->url = $this->url->link('localisation/stock_status', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}');
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $stock_status_total,
+			'page'  => $page,
+			'limit' => $this->config->get('config_pagination'),
+			'url'   => $this->url->link('localisation/stock_status', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
+		));
 
-		$data['pagination'] = $pagination->render();
-
-		$data['results'] = sprintf($this->language->get('text_pagination'), ($stock_status_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($stock_status_total - $this->config->get('config_limit_admin'))) ? $stock_status_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $stock_status_total, ceil($stock_status_total / $this->config->get('config_limit_admin')));
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($stock_status_total) ? (($page - 1) * $this->config->get('config_pagination')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination')) > ($stock_status_total - $this->config->get('config_pagination'))) ? $stock_status_total : ((($page - 1) * $this->config->get('config_pagination')) + $this->config->get('config_pagination')), $stock_status_total, ceil($stock_status_total / $this->config->get('config_pagination')));
 
 		$data['sort'] = $sort;
 		$data['order'] = $order;
@@ -299,7 +298,7 @@ class ControllerLocalisationStockStatus extends Controller {
 		if (isset($this->request->post['stock_status'])) {
 			$data['stock_status'] = $this->request->post['stock_status'];
 		} elseif (isset($this->request->get['stock_status_id'])) {
-			$data['stock_status'] = $this->model_localisation_stock_status->getStockStatusDescriptions($this->request->get['stock_status_id']);
+			$data['stock_status'] = $this->model_localisation_stock_status->getDescriptions($this->request->get['stock_status_id']);
 		} else {
 			$data['stock_status'] = array();
 		}
@@ -330,7 +329,6 @@ class ControllerLocalisationStockStatus extends Controller {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
 
-		$this->load->model('setting/store');
 		$this->load->model('catalog/product');
 
 		foreach ($this->request->post['selected'] as $stock_status_id) {

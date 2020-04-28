@@ -8,7 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-abstract class Twig_Test_NodeTestCase extends PHPUnit_Framework_TestCase
+
+use PHPUnit\Framework\TestCase;
+
+abstract class Twig_Test_NodeTestCase extends TestCase
 {
     abstract public function getTests();
 
@@ -39,26 +42,22 @@ abstract class Twig_Test_NodeTestCase extends PHPUnit_Framework_TestCase
 
     protected function getEnvironment()
     {
-        return new Twig_Environment(new Twig_Loader_Array(array()));
+        return new Twig_Environment(new Twig_Loader_Array([]));
     }
 
     protected function getVariableGetter($name, $line = false)
     {
         $line = $line > 0 ? "// line {$line}\n" : '';
 
-        if (PHP_VERSION_ID >= 50400) {
-            return sprintf('%s(isset($context["%s"]) ? $context["%s"] : null)', $line, $name, $name);
-        }
-
-        return sprintf('%s$this->getContext($context, "%s")', $line, $name);
+        return sprintf('%s($context["%s"] ?? null)', $line, $name, $name);
     }
 
     protected function getAttributeGetter()
     {
-        if (function_exists('twig_template_get_attributes')) {
-            return 'twig_template_get_attributes($this, ';
-        }
-
-        return '$this->getAttribute(';
+        return 'twig_get_attribute($this->env, $this->source, ';
     }
 }
+
+class_alias('Twig_Test_NodeTestCase', 'Twig\Test\NodeTestCase', false);
+class_exists('Twig_Environment');
+class_exists('Twig_Node');

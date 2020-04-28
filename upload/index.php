@@ -1,6 +1,6 @@
 <?php
 // Version
-define('VERSION', '3.0.2.1b');
+define('VERSION', '3.1.0.0_b');
 
 // Configuration
 if (is_file('config.php')) {
@@ -10,7 +10,7 @@ if (is_file('config.php')) {
 // Install
 if (!defined('DIR_APPLICATION')) {
 	header('Location: install/index.php');
-	exit;
+	exit();
 }
 
 // Startup

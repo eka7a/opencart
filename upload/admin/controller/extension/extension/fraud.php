@@ -83,10 +83,10 @@ class ControllerExtensionExtensionFraud extends Controller {
 			foreach ($files as $file) {
 				$extension = basename($file, '.php');
 
-				$this->load->language('extension/fraud/' . $extension, 'extension');
+				$this->load->language('extension/fraud/' . $extension, $extension);
 
 				$data['extensions'][] = array(
-					'name'      => $this->language->get('extension')->get('heading_title'),
+					'name'      => $this->language->get($extension . '_heading_title'),
 					'status'    => $this->config->get('fraud_' . $extension . '_status') ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),
 					'install'   => $this->url->link('extension/extension/fraud/install', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension),
 					'uninstall' => $this->url->link('extension/extension/fraud/uninstall', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension),
@@ -96,6 +96,7 @@ class ControllerExtensionExtensionFraud extends Controller {
 			}
 		}
 
+		$data['promotion'] = $this->load->controller('extension/extension/promotion');
 
 		$this->response->setOutput($this->load->view('extension/extension/fraud', $data));
 	}

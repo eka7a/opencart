@@ -2076,12 +2076,14 @@ function db_schema() {
 			array(
 				'name' => 'status',
 				'type' => 'tinyint(1)',
-				'not_null' => true
+				'not_null' => true,
+				'default' => '0'
 			),
 			array(
 				'name' => 'sort_order',
 				'type' => 'int(3)',
-				'not_null' => true
+				'not_null' => true,
+				'default' => '1'
 			)
 		),
 		'primary' => array(
@@ -2297,6 +2299,59 @@ function db_schema() {
 		'primary' => array(
 			'filter_group_id',
 			'language_id'
+		),
+		'engine' => 'MyISAM',
+		'charset' => 'utf8',
+		'collate' => 'utf8_general_ci'
+	);
+
+	$tables[] = array(
+		'name' => 'gdpr',
+		'field' => array(
+			array(
+				'name' => 'gdpr_id',
+				'type' => 'int(11)',
+				'not_null' => true,
+				'auto_increment' => true
+			),
+			array(
+				'name' => 'store_id',
+				'type' => 'int(11)',
+				'not_null' => true
+			),
+			array(
+				'name' => 'language_id',
+				'type' => 'int(11)',
+				'not_null' => true
+			),
+			array(
+				'name' => 'code',
+				'type' => 'varchar(40)',
+				'not_null' => true
+			),
+			array(
+				'name' => 'email',
+				'type' => 'varchar(96)',
+				'not_null' => true
+			),
+			array(
+				'name' => 'action',
+				'type' => 'varchar(6)',
+				'not_null' => true
+			),
+			array(
+				'name' => 'status',
+				'type' => 'tinyint(1)',
+				'not_null' => true
+			),
+			array(
+				'name' => 'date_added',
+				'type' => 'datetime',
+				'not_null' => true
+			)
+		),
+		'primary' => array(
+			'gdpr_id'
 		),
 		'engine' => 'MyISAM',
 		'charset' => 'utf8',
@@ -3558,6 +3613,11 @@ function db_schema() {
 				'not_null' => true
 			),
 			array(
+				'name' => 'master_id',
+				'type' => 'int(11)',
+				'not_null' => true
+			),
+			array(
 				'name' => 'name',
 				'type' => 'varchar(255)',
 				'not_null' => true
@@ -3746,7 +3806,7 @@ function db_schema() {
 			),
 			array(
 				'name' => 'type',
-				'type' => 'varchar(255)',
+				'type' => 'int(11)',
 				'not_null' => true
 			),
 			array(
@@ -3997,6 +4057,11 @@ function db_schema() {
 				'auto_increment' => true
 			),
 			array(
+				'name' => 'master_id',
+				'type' => 'int(11)',
+				'not_null' => true
+			),
+			array(
 				'name' => 'model',
 				'type' => 'varchar(64)',
 				'not_null' => true
@@ -4034,6 +4099,16 @@ function db_schema() {
 			array(
 				'name' => 'location',
 				'type' => 'varchar(128)',
+				'not_null' => true
+			),
+			array(
+				'name' => 'variant',
+				'type' => 'text',
+				'not_null' => true
+			),
+			array(
+				'name' => 'override',
+				'type' => 'text',
 				'not_null' => true
 			),
 			array(
@@ -5618,6 +5693,47 @@ function db_schema() {
 	);
 
 	$tables[] = array(
+		'name' => 'seo_regex',
+		'field' => array(
+			array(
+				'name' => 'seo_regex_id',
+				'type' => 'int(11)',
+				'not_null' => true,
+				'auto_increment' => true
+			),
+			array(
+				'name' => 'name',
+				'type' => 'varchar(64)',
+				'not_null' => true
+			),
+			array(
+				'name' => 'regex',
+				'type' => 'varchar(255)',
+				'not_null' => true
+			),
+			array(
+				'name' => 'sort_order',
+				'type' => 'int(3)',
+				'not_null' => true
+			)
+		),
+		'primary' => array(
+			'seo_regex_id'
+		),
+		'index' => array(
+			array(
+				'name' => 'regex',
+				'key' => array(
+					'regex'
+				)
+			)
+		),
+		'engine' => 'MyISAM',
+		'charset' => 'utf8',
+		'collate' => 'utf8_general_ci'
+	);
+
+	$tables[] = array(
 		'name' => 'seo_url',
 		'field' => array(
 			array(
@@ -5637,12 +5753,17 @@ function db_schema() {
 				'not_null' => true
 			),
 			array(
+				'name' => 'keyword',
+				'type' => 'varchar(255)',
+				'not_null' => true
+			),
+			array(
 				'name' => 'query',
 				'type' => 'varchar(255)',
 				'not_null' => true
 			),
 			array(
-				'name' => 'keyword',
+				'name' => 'push',
 				'type' => 'varchar(255)',
 				'not_null' => true
 			)

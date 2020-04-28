@@ -2,41 +2,35 @@
 <div id="content">
   <div class="page-header">
     <div class="container-fluid">
-      <div class="pull-right">
-        <button id="button-send" data-loading-text="{{ text_loading }}" data-toggle="tooltip" title="{{ button_send }}" class="btn btn-primary" onclick="send('index.php?route=marketing/contact/send&user_token={{ user_token }}');"><i class="fa fa-envelope"></i></button>
-        <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a></div>
+      <div class="float-right">
+        <button id="button-send" data-loading-text="{{ text_loading }}" data-toggle="tooltip" title="{{ button_send }}" class="btn btn-primary" onclick="send('index.php?route=marketing/contact/send&user_token={{ user_token }}');"><i class="fas fa-envelope"></i></button>
+        <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-light"><i class="fas fa-reply"></i></a></div>
       <h1>{{ heading_title }}</h1>
-      <ul class="breadcrumb">
+      <ol class="breadcrumb">
         {% for breadcrumb in breadcrumbs %}
-          <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
         {% endfor %}
-      </ul>
+      </ol>
     </div>
   </div>
   <div class="container-fluid">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title"><i class="fa fa-envelope"></i> {{ heading_title }}</h3>
-      </div>
-      <div class="panel-body">
-        <form class="form-horizontal">
-          <div class="form-group">
-            <label class="col-sm-2 control-label" for="input-store">{{ entry_store }}</label>
+    <div class="card">
+      <div class="card-header"><i class="fas fa-envelope"></i> {{ heading_title }}</div>
+      <div class="card-body">
+        <form>
+          <div class="form-group row">
+            <label for="input-store" class="col-sm-2 col-form-label">{{ entry_store }}</label>
             <div class="col-sm-10">
               <select name="store_id" id="input-store" class="form-control">
                 <option value="0">{{ text_default }}</option>
-
                 {% for store in stores %}
-
                   <option value="{{ store.store_id }}">{{ store.name }}</option>
-
                 {% endfor %}
-
               </select>
             </div>
           </div>
-          <div class="form-group">
-            <label class="col-sm-2 control-label" for="input-to">{{ entry_to }}</label>
+          <div class="form-group row">
+            <label for="input-to" class="col-sm-2 col-form-label">{{ entry_to }}</label>
             <div class="col-sm-10">
               <select name="to" id="input-to" class="form-control">
                 <option value="newsletter">{{ text_newsletter }}</option>
@@ -49,51 +43,56 @@
               </select>
             </div>
           </div>
-          <div class="form-group to" id="to-customer-group">
-            <label class="col-sm-2 control-label" for="input-customer-group">{{ entry_customer_group }}</label>
+          <div class="form-group row to" id="to-customer-group">
+            <label for="input-customer-group" class="col-sm-2 col-form-label">{{ entry_customer_group }}</label>
             <div class="col-sm-10">
               <select name="customer_group_id" id="input-customer-group" class="form-control">
-
                 {% for customer_group in customer_groups %}
-
                   <option value="{{ customer_group.customer_group_id }}">{{ customer_group.name }}</option>
-
                 {% endfor %}
-
               </select>
             </div>
           </div>
-          <div class="form-group to" id="to-customer">
-            <label class="col-sm-2 control-label" for="input-customer"><span data-toggle="tooltip" title="{{ help_customer }}">{{ entry_customer }}</span></label>
+          <div class="form-group row to" id="to-customer">
+            <label class="col-sm-2 col-form-label">{{ entry_customer }}</label>
             <div class="col-sm-10">
               <input type="text" name="customers" value="" placeholder="{{ entry_customer }}" id="input-customer" class="form-control"/>
-              <div class="well well-sm" style="height: 150px; overflow: auto;"></div>
+              <div class="form-control p-0" style="height: 150px; overflow: auto;">
+                <table id="mail-customer" class="table table-sm m-0"></table>
+              </div>
+              <small class="form-text text-muted">{{ help_customer }}</small>
             </div>
           </div>
-          <div class="form-group to" id="to-affiliate">
-            <label class="col-sm-2 control-label" for="input-affiliate"><span data-toggle="tooltip" title="{{ help_affiliate }}">{{ entry_affiliate }}</span></label>
+          <div class="form-group row to" id="to-affiliate">
+            <label class="col-sm-2 col-form-label">{{ entry_affiliate }}</label>
             <div class="col-sm-10">
               <input type="text" name="affiliates" value="" placeholder="{{ entry_affiliate }}" id="input-affiliate" class="form-control"/>
-              <div class="well well-sm" style="height: 150px; overflow: auto;"></div>
+              <div class="form-control p-0" style="height: 150px; overflow: auto;">
+                <table id="mail-affiliate" class="table table-sm m-0"></table>
+              </div>
+              <small class="form-text text-muted">{{ help_affiliate }}</small>
             </div>
           </div>
-          <div class="form-group to" id="to-product">
-            <label class="col-sm-2 control-label" for="input-product"><span data-toggle="tooltip" title="{{ help_product }}">{{ entry_product }}</span></label>
+          <div class="form-group row to" id="to-product">
+            <label class="col-sm-2 col-form-label">{{ entry_product }}</label>
             <div class="col-sm-10">
               <input type="text" name="products" value="" placeholder="{{ entry_product }}" id="input-product" class="form-control"/>
-              <div class="well well-sm" style="height: 150px; overflow: auto;"></div>
+              <div class="form-control p-0" style="height: 150px; overflow: auto;">
+                <table id="mail-product" class="table table-sm m-0"></table>
+              </div>
+              <small class="form-text text-muted">{{ help_product }}</small>
             </div>
           </div>
-          <div class="form-group required">
-            <label class="col-sm-2 control-label" for="input-subject">{{ entry_subject }}</label>
+          <div class="form-group row required">
+            <label for="input-subject" class="col-sm-2 col-form-label">{{ entry_subject }}</label>
             <div class="col-sm-10">
               <input type="text" name="subject" value="" placeholder="{{ entry_subject }}" id="input-subject" class="form-control"/>
             </div>
           </div>
-          <div class="form-group required">
-            <label class="col-sm-2 control-label" for="input-message">{{ entry_message }}</label>
+          <div class="form-group row required">
+            <label for="input-message" class="col-sm-2 col-form-label">{{ entry_message }}</label>
             <div class="col-sm-10">
-              <textarea name="message" placeholder="{{ entry_message }}" id="input-message" data-toggle="summernote" data-lang="{{ summernote }}" class="form-control"></textarea>
+              <textarea name="message" placeholder="{{ entry_message }}" id="input-message" data-toggle="ckeditor" data-lang="{{ ckeditor }}" class="form-control"></textarea>
             </div>
           </div>
         </form>
@@ -102,6 +101,8 @@
   </div>
 </div>
 <script type="text/javascript"><!--
+$('textarea[data-toggle=\'ckeditor\']').ckeditor();
+
 $('select[name=\'to\']').on('change', function() {
 	$('.to').hide();
 
@@ -133,14 +134,19 @@ $('input[name=\'customers\']').autocomplete({
 	'select': function(item) {
 		$('input[name=\'customers\']').val('');
 
-		$('#input-customer' + item['value']).remove();
+		$('#mail-customer' + item['value']).remove();
 
-		$('#input-customer').parent().find('.well').append('<div id="customer' + item['value'] + '"><i class="fa fa-minus-circle"></i> ' + item['label'] + '<input type="hidden" name="customer[]" value="' + item['value'] + '" /></div>');
+		html  = '<tr id="mail-customer' + item['value'] + '">';
+		html += '  <td>' + item['label'] + '<input type="hidden" name="customer[]" value="' + item['value'] + '"/></td>';
+		html += '  <td class="text-right"><button type="button" class="btn btn-danger btn-sm"><i class="fas fa-minus-circle"></i></button></td>';
+		html += '</tr>';
+
+		$('#mail-customer').append(html);
 	}
 });
 
-$('#input-customer').parent().find('.well').delegate('.fa-minus-circle', 'click', function() {
-	$(this).parent().remove();
+$('#mail-customer').on('click', '.btn', function() {
+	$(this).parent().parent().remove();
 });
 
 // Affiliates
@@ -165,14 +171,19 @@ $('input[name=\'affiliates\']').autocomplete({
 	'select': function(item) {
 		$('input[name=\'affiliates\']').val('');
 
-		$('#input-affiliate' + item['value']).remove();
+		$('#mail-affiliate' + item['value']).remove();
 
-		$('#input-affiliate').parent().find('.well').append('<div id="affiliate' + item['value'] + '"><i class="fa fa-minus-circle"></i> ' + item['label'] + '<input type="hidden" name="affiliate[]" value="' + item['value'] + '" /></div>');
+		html  = '<tr id="mail-affiliate' + item['value'] + '">';
+		html += '  <td>' + item['label'] + '<input type="hidden" name="affiliate[]" value="' + item['value'] + '"/></td>';
+		html += '  <td class="text-right"><button type="button" class="btn btn-danger btn-sm"><i class="fas fa-minus-circle"></i></button></td>';
+		html += '</tr>';
+
+		$('#mail-affiliate').append(html);
 	}
 });
 
-$('#input-affiliate').parent().find('.well').delegate('.fa-minus-circle', 'click', function() {
-	$(this).parent().remove();
+$('#input-affiliate').on('click', '.btn', function() {
+	$(this).parent().parent().remove();
 });
 
 // Products
@@ -197,17 +208,26 @@ $('input[name=\'products\']').autocomplete({
 	'select': function(item) {
 		$('input[name=\'products\']').val('');
 
-		$('#input-product' + item['value']).remove();
+		$('#mail-product' + item['value']).remove();
 
-		$('#input-product').parent().find('.well').append('<div id="product' + item['value'] + '"><i class="fa fa-minus-circle"></i> ' + item['label'] + '<input type="hidden" name="product[]" value="' + item['value'] + '" /></div>');
+		html  = '<tr id="mail-product' + item['value'] + '">';
+		html += '  <td>' + item['label'] + '<input type="hidden" name="product[]" value="' + item['value'] + '"/></td>';
+		html += '  <td class="text-right"><button type="button" class="btn btn-danger btn-sm"><i class="fas fa-minus-circle"></i></button></td>';
+		html += '</tr>';
+
+		$('#mail-product').append(html);
 	}
 });
 
-$('#input-product').parent().find('.well').delegate('.fa-minus-circle', 'click', function() {
-	$(this).parent().remove();
+$('#mail-product').on('click', '.btn', function() {
+	$(this).parent().parent().remove();
 });
 
 function send(url) {
+	for (instance in CKEDITOR.instances) {
+		CKEDITOR.instances[instance].updateElement();
+	}
+
 	$.ajax({
 		url: url,
 		type: 'post',
@@ -220,28 +240,30 @@ function send(url) {
 			$('#button-send').button('reset');
 		},
 		success: function(json) {
-			$('.alert-dismissible, .text-danger').remove();
+			console.log(json);
+
+			$('.alert-dismissible, .invalid-tooltip').remove();
 
 			if (json['error']) {
 				if (json['error']['warning']) {
-					$('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + json['error']['warning'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+					$('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fas fa-exclamation-circle"></i> ' + json['error']['warning'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
 				}
 
 				if (json['error']['email']) {
-					$('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + json['error']['email'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+					$('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fas fa-exclamation-circle"></i> ' + json['error']['email'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
 				}
 
 				if (json['error']['subject']) {
-					$('input[name=\'subject\']').after('<div class="text-danger">' + json['error']['subject'] + '</div>');
+					$('input[name=\'subject\']').after('<div class="invalid-tooltip d-block">' + json['error']['subject'] + '</div>');
 				}
 
 				if (json['error']['message']) {
-					$('textarea[name=\'message\']').parent().append('<div class="text-danger">' + json['error']['message'] + '</div>');
+					$('textarea[name=\'message\']').after('<div class="invalid-tooltip d-block">' + json['error']['message'] + '</div>');
 				}
 			}
 
 			if (json['success']) {
-				$('#content > .container-fluid').prepend('<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i>  ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+				$('#content > .container-fluid').prepend('<div class="alert alert-success alert-dismissible"><i class="fas fa-check-circle"></i>  ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
 			}
 
 			if (json['next']) {
@@ -249,10 +271,11 @@ function send(url) {
 			}
 		},
 		error: function(xhr, ajaxOptions, thrownError) {
+			console.log(xhr.responseText);
+
 			alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
 		}
 	});
 }
-
 //--></script>
 {{ footer }}

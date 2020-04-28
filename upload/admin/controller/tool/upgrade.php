@@ -61,7 +61,7 @@ class ControllerToolUpgrade extends Controller {
 
 		$this->load->model('setting/extension');
 
-		$results = $this->model_setting_extension->getExtensionInstalls(0, 1000);
+		$results = $this->model_setting_extension->getInstalls(0, 1000);
 
 		foreach ($results as $result) {
 			if ($result['extension_id']) {
@@ -145,11 +145,11 @@ class ControllerToolUpgrade extends Controller {
 	}
 
 	public function modified() {
-		$this->load->language('upgrade/backup');
+		$this->load->language('tool/upgrade');
 
 		$json = array();
 
-		if (!$this->user->hasPermission('modify', 'tool/backup')) {
+		if (!$this->user->hasPermission('modify', 'tool/upgrade')) {
 			$json['error'] = $this->language->get('error_permission');
 		}
 

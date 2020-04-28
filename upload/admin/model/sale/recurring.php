@@ -6,11 +6,11 @@ class ModelSaleRecurring extends Model {
 		$implode = array();
 
 		if (!empty($data['filter_order_recurring_id'])) {
-			$implode[] = "or.order_recurring_id = " . (int)$data['filter_order_recurring_id'];
+			$implode[] = "or.order_recurring_id = '" . (int)$data['filter_order_recurring_id'] . "'";
 		}
 
 		if (!empty($data['filter_order_id'])) {
-			$implode[] = "or.order_id = " . (int)$data['filter_order_id'];
+			$implode[] = "or.order_id = '" . (int)$data['filter_order_id'] . "'";
 		}
 
 		if (!empty($data['filter_reference'])) {
@@ -22,7 +22,7 @@ class ModelSaleRecurring extends Model {
 		}
 
 		if (!empty($data['filter_status'])) {
-			$implode[] = "or.status = " . (int)$data['filter_status'];
+			$implode[] = "or.status = '" . (int)$data['filter_status'] . "'";;
 		}
 
 		if (!empty($data['filter_date_added'])) {
@@ -31,8 +31,8 @@ class ModelSaleRecurring extends Model {
 
 		if ($implode) {
 			$sql .= " WHERE " . implode(" AND ", $implode);
-		} 
-			 
+		}
+
 		$sort_data = array(
 			'or.order_recurring_id',
 			'or.order_id',
@@ -72,7 +72,7 @@ class ModelSaleRecurring extends Model {
 	}
 
 	public function getRecurring($order_recurring_id) {
-		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_recurring WHERE order_recurring_id = " . (int)$order_recurring_id);
+		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_recurring` WHERE `order_recurring_id` = '" . (int)$order_recurring_id . "'");
 
 		return $query->row;
 	}
@@ -80,7 +80,7 @@ class ModelSaleRecurring extends Model {
 	public function getRecurringTransactions($order_recurring_id) {
 		$transactions = array();
 
-		$query = $this->db->query("SELECT amount, type, date_added FROM " . DB_PREFIX . "order_recurring_transaction WHERE order_recurring_id = " . (int)$order_recurring_id . " ORDER BY date_added DESC");
+		$query = $this->db->query("SELECT `amount`, `type`, `date_added` FROM `" . DB_PREFIX . "order_recurring_transaction` WHERE `order_recurring_id` = '" . (int)$order_recurring_id . "' ORDER BY `date_added` DESC");
 
 		foreach ($query->rows as $result) {
 			switch ($result['type']) {
@@ -156,18 +156,18 @@ class ModelSaleRecurring extends Model {
 
 		return $result;
 	}
-	
+
 	public function getTotalRecurrings($data = array()) {
-		$sql = "SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "order_recurring` `or` LEFT JOIN `" . DB_PREFIX . "order` o ON (`or`.order_id = `o`.order_id)";
-		
+		$sql = "SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "order_recurring` `or` LEFT JOIN `" . DB_PREFIX . "order` o ON (`or`.`order_id` = `o`.`order_id`)";
+
 		$implode = array();
 
 		if (!empty($data['filter_order_recurring_id'])) {
-			$implode[] .= "or.order_recurring_id = " . (int)$data['filter_order_recurring_id'];
+			$implode[] .= "or.order_recurring_id = '" . (int)$data['filter_order_recurring_id'] . "'";
 		}
 
 		if (!empty($data['filter_order_id'])) {
-			$implode[] .= "or.order_id = " . (int)$data['filter_order_id'];
+			$implode[] .= "or.order_id = '" . (int)$data['filter_order_id'] . "'";
 		}
 
 		if (!empty($data['filter_payment_reference'])) {
@@ -179,19 +179,19 @@ class ModelSaleRecurring extends Model {
 		}
 
 		if (!empty($data['filter_status'])) {
-			$implode[] .= "or.status = " . (int)$data['filter_status'];
+			$implode[] .= "or.status = '" . (int)$data['filter_status'] . "'";
 		}
 
 		if (!empty($data['filter_date_added'])) {
 			$implode[] .= "DATE(or.date_added) = DATE('" . $this->db->escape((string)$data['filter_date_added']) . "')";
 		}
-		
+
 		if ($implode) {
 			$sql .= " WHERE " . implode(" AND ", $implode);
-		} 
-		
+		}
+
 		$query = $this->db->query($sql);
 
 		return $query->row['total'];
-	}	
+	}
 }

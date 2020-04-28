@@ -280,8 +280,8 @@ class ControllerMarketingAffiliate extends Controller {
 			'filter_date_added' => $filter_date_added,
 			'sort'              => $sort,
 			'order'             => $order,
-			'start'             => ($page - 1) * $this->config->get('config_limit_admin'),
-			'limit'             => $this->config->get('config_limit_admin')
+			'start'             => ($page - 1) * $this->config->get('config_pagination'),
+			'limit'             => $this->config->get('config_pagination')
 		);
 
 		$affiliate_total = $this->model_marketing_affiliate->getTotalAffiliates($filter_data);
@@ -392,15 +392,14 @@ class ControllerMarketingAffiliate extends Controller {
 			$url .= '&order=' . $this->request->get['order'];
 		}
 
-		$pagination = new Pagination();
-		$pagination->total = $affiliate_total;
-		$pagination->page = $page;
-		$pagination->limit = $this->config->get('config_limit_admin');
-		$pagination->url = $this->url->link('marketing/affiliate', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}');
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $affiliate_total,
+			'page'  => $page,
+			'limit' => $this->config->get('config_pagination'),
+			'url'   => $this->url->link('marketing/affiliate', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
+		));
 
-		$data['pagination'] = $pagination->render();
-
-		$data['results'] = sprintf($this->language->get('text_pagination'), ($affiliate_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($affiliate_total - $this->config->get('config_limit_admin'))) ? $affiliate_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $affiliate_total, ceil($affiliate_total / $this->config->get('config_limit_admin')));
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($affiliate_total) ? (($page - 1) * $this->config->get('config_pagination')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination')) > ($affiliate_total - $this->config->get('config_pagination'))) ? $affiliate_total : ((($page - 1) * $this->config->get('config_pagination')) + $this->config->get('config_pagination')), $affiliate_total, ceil($affiliate_total / $this->config->get('config_pagination')));
 
 		$data['filter_name'] = $filter_name;
 		$data['filter_tracking'] = $filter_tracking;
@@ -427,6 +426,12 @@ class ControllerMarketingAffiliate extends Controller {
 			$data['error_warning'] = $this->error['warning'];
 		} else {
 			$data['error_warning'] = '';
+		}
+
+		if (isset($this->error['tracking'])) {
+			$data['error_tracking'] = $this->error['tracking'];
+		} else {
+			$data['error_tracking'] = '';
 		}
 
 		if (isset($this->error['cheque'])) {
@@ -513,7 +518,7 @@ class ControllerMarketingAffiliate extends Controller {
 
 		$data['cancel'] = $this->url->link('marketing/affiliate', 'user_token=' . $this->session->data['user_token'] . $url);
 
-		// Affliate
+		// Affiliate
 		if (isset($this->request->get['customer_id']) && ($this->request->server['REQUEST_METHOD'] != 'POST')) {
 			$affiliate_info = $this->model_marketing_affiliate->getAffiliate($this->request->get['customer_id']);
 		}
@@ -524,20 +529,20 @@ class ControllerMarketingAffiliate extends Controller {
 			$data['customer_id'] = 0;
 		}
 
-		if (isset($this->request->post['customer_group_id'])) {
-			$data['customer_group_id'] = (int)$this->request->post['customer_group_id'];
-		} elseif (!empty($affiliate_info)) {
-			$data['customer_group_id'] = $affiliate_info['customer_group_id'];
-		} else {
-			$data['customer_group_id'] = 0;
-		}
-
 		if (isset($this->request->post['customer'])) {
 			$data['customer'] = $this->request->post['customer'];
 		} elseif (!empty($affiliate_info)) {
 			$data['customer'] = $affiliate_info['customer'];
 		} else {
 			$data['customer'] = '';
+		}
+
+		if (isset($this->request->post['customer_group_id'])) {
+			$data['customer_group_id'] = $this->request->post['customer_group_id'];
+		} elseif (!empty($affiliate_info)) {
+			$data['customer_group_id'] = $affiliate_info['customer_group_id'];
+		} else {
+			$data['customer_group_id'] = '';
 		}
 
 		if (isset($this->request->post['company'])) {
@@ -561,7 +566,7 @@ class ControllerMarketingAffiliate extends Controller {
 		} elseif (!empty($affiliate_info)) {
 			$data['tracking'] = $affiliate_info['tracking'];
 		} else {
-			$data['tracking'] = '';
+			$data['tracking'] = token(10);
 		}
 
 		if (isset($this->request->post['commission'])) {
@@ -667,7 +672,7 @@ class ControllerMarketingAffiliate extends Controller {
 		foreach ($custom_fields as $custom_field) {
 			$data['custom_fields'][] = array(
 				'custom_field_id'    => $custom_field['custom_field_id'],
-				'custom_field_value' => $this->model_customer_custom_field->getCustomFieldValues($custom_field['custom_field_id']),
+				'custom_field_value' => $this->model_customer_custom_field->getValues($custom_field['custom_field_id']),
 				'name'               => $custom_field['name'],
 				'value'              => $custom_field['value'],
 				'type'               => $custom_field['type'],
@@ -696,20 +701,26 @@ class ControllerMarketingAffiliate extends Controller {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
 
-		// Check to see if customer is already a affiliate
-		if (isset($this->request->post['customer_id'])) {
-			$affiliate_info = $this->model_marketing_affiliate->getAffiliate($this->request->post['customer_id']);
+		$this->load->model('customer/customer');
 
-			if ($affiliate_info) {
-				$this->error['warning'] = $this->language->get('error_already');
-			}
+		$customer_info = $this->model_customer_customer->getCustomer($this->request->post['customer_id']);
+
+		if (!$customer_info) {
+			$this->error['warning'] = $this->language->get('error_customer');
+		}
+
+		// Check to see if customer is already a affiliate
+		$affiliate_info = $this->model_marketing_affiliate->getAffiliate($this->request->post['customer_id']);
+
+		if ($affiliate_info) {
+			$this->error['warning'] = $this->language->get('error_already');
 		}
 
 		if (!$this->request->post['tracking']) {
 			$this->error['tracking'] = $this->language->get('error_tracking');
 		}
 
-		$affiliate_info = $this->model_marketing_affiliate->getAffliateByTracking($this->request->post['tracking']);
+		$affiliate_info = $this->model_marketing_affiliate->getAffiliateByTracking($this->request->post['tracking']);
 
 		if ($affiliate_info && (!isset($this->request->get['customer_id']) || ($this->request->get['customer_id'] != $affiliate_info['customer_id']))) {
 			$this->error['tracking'] = $this->language->get('error_exists');
@@ -731,15 +742,17 @@ class ControllerMarketingAffiliate extends Controller {
 		}
 
 		// Custom field validation
-		$this->load->model('customer/custom_field');
+		if ($customer_info) {
+			$this->load->model('customer/custom_field');
 
-		$custom_fields = $this->model_customer_custom_field->getCustomFields(array('filter_customer_group_id' => $this->request->post['customer_group_id']));
+			$custom_fields = $this->model_customer_custom_field->getCustomFields(array('filter_customer_group_id' => $customer_info['customer_group_id']));
 
-		foreach ($custom_fields as $custom_field) {
-			if (($custom_field['location'] == 'affiliate') && $custom_field['required'] && empty($this->request->post['custom_field'][$custom_field['custom_field_id']])) {
-				$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
-			} elseif (($custom_field['location'] == 'affiliate') && ($custom_field['type'] == 'text') && !empty($custom_field['validation']) && !filter_var($this->request->post['custom_field'][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
-				$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
+			foreach ($custom_fields as $custom_field) {
+				if (($custom_field['location'] == 'affiliate') && $custom_field['required'] && empty($this->request->post['custom_field'][$custom_field['custom_field_id']])) {
+					$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
+				} elseif (($custom_field['location'] == 'affiliate') && ($custom_field['type'] == 'text') && !empty($custom_field['validation']) && filter_var($this->request->post['custom_field'][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => '/' . html_entity_decode($custom_field['validation'], ENT_QUOTES, 'UTF-8') . '/')))) {
+					$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
+				}
 			}
 		}
 
@@ -804,13 +817,12 @@ class ControllerMarketingAffiliate extends Controller {
 
 		$report_total = $this->model_marketing_affiliate->getTotalReports($customer_id);
 
-		$pagination = new Pagination();
-		$pagination->total = $report_total;
-		$pagination->page = $page;
-		$pagination->limit = 10;
-		$pagination->url = $this->url->link('marketing/affiliate/report', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $customer_id . '&page={page}');
-
-		$data['pagination'] = $pagination->render();
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $report_total,
+			'page'  => $page,
+			'limit' => 10,
+			'url'   => $this->url->link('marketing/affiliate/report', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $customer_id . '&page={page}')
+		));
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($report_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($report_total - 10)) ? $report_total : ((($page - 1) * 10) + 10), $report_total, ceil($report_total / 10));
 

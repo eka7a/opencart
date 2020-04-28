@@ -7,31 +7,37 @@ class File {
 		$file = DIR_SESSION . 'sess_' . basename($session_id);
 
 		if (is_file($file)) {
-			$handle = fopen($file, 'r');
+			$size = filesize($file);
 
-			flock($handle, LOCK_SH);
+			if ($size) {
+				$handle = fopen($file, 'r');
 
-			$data = fread($handle, filesize($file));
+				flock($handle, LOCK_SH);
 
-			flock($handle, LOCK_UN);
+				$data = fread($handle, $size);
 
-			fclose($handle);
+				flock($handle, LOCK_UN);
 
-			return unserialize($data);
-		} else {
-			return array();
+				fclose($handle);
+
+				return json_decode($data, true);
+			} else {
+				return array();
+			}
 		}
+
+		return array();
 	}
 
 	public function write($session_id, $data) {
 		$file = DIR_SESSION . 'sess_' . basename($session_id);
 
-		$handle = fopen($file, 'w');
+		$handle = fopen($file, 'c');
 
 		flock($handle, LOCK_EX);
 
-		fwrite($handle, serialize($data));
-
+		fwrite($handle, json_encode($data));
+		ftruncate($handle, ftell($handle));
 		fflush($handle);
 
 		flock($handle, LOCK_UN);
@@ -45,7 +51,7 @@ class File {
 		$file = DIR_SESSION . 'sess_' . basename($session_id);
 
 		if (is_file($file)) {
-			unset($file);
+			unlink($file);
 		}
 	}
 

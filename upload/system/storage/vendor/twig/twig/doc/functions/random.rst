@@ -1,12 +1,6 @@
 ``random``
 ==========
 
-.. versionadded:: 1.5
-    The ``random`` function was added in Twig 1.5.
-
-.. versionadded:: 1.6
-    String and integer handling was added in Twig 1.6.
-
 The ``random`` function returns a random value depending on the supplied
 parameter type:
 
@@ -26,4 +20,4 @@ Arguments
 
 * ``values``: The values
 
-.. _`mt_rand`: http://php.net/mt_rand
+.. _`mt_rand`: https://secure.php.net/mt_rand

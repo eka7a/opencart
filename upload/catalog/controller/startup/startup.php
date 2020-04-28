@@ -2,7 +2,7 @@
 class ControllerStartupStartup extends Controller {
 	public function index() {
 		// Store
-		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "store WHERE REPLACE(`url`, 'www.', '') = '" . $this->db->escape(($this->request->server['HTTPS'] ? 'https://' : 'http://') . str_replace('www.', '', $_SERVER['HTTP_HOST']) . rtrim(dirname($_SERVER['PHP_SELF']), '/.\\') . '/') . "'");
+		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "store` WHERE REPLACE(`url`, 'www.', '') = '" . $this->db->escape(($this->request->server['HTTPS'] ? 'https://' : 'http://') . str_replace('www.', '', $this->request->server['HTTP_HOST']) . rtrim(dirname($this->request->server['PHP_SELF']), '/.\\') . '/') . "'");
 
 		if (isset($this->request->get['store_id'])) {
 			$this->config->set('config_store_id', (int)$this->request->get['store_id']);
@@ -27,8 +27,44 @@ class ControllerStartupStartup extends Controller {
 			}
 		}
 
-		// Theme
-		$this->config->set('template_cache', $this->config->get('developer_theme'));
+		// Set time zone
+		if ($this->config->get('config_timezone')) {
+			date_default_timezone_set($this->config->get('config_timezone'));
+
+			// Sync PHP and DB time zones.
+			$this->db->query("SET time_zone = '" . $this->db->escape(date('P')) . "'");
+		}
+
+		// Session
+		if (isset($this->request->get['route']) && substr((string)$this->request->get['route'], 0, 4) == 'api/') {
+			$this->load->model('setting/api');
+
+			$this->model_setting_api->cleanSessions();
+
+			// Make sure the IP is allowed
+			$api_info = $this->model_setting_api->getApiByToken($this->request->get['api_token']);
+
+			if ($api_info) {
+				$this->session->start($this->request->get['api_token']);
+
+				$this->model_setting_api->updateSession($api_info['api_session_id']);
+			}
+		} else {
+			if (isset($this->request->cookie[$this->config->get('session_name')])) {
+				$session_id = $this->request->cookie[$this->config->get('session_name')];
+			} else {
+				$session_id = '';
+			}
+
+			$this->session->start($session_id);
+
+			setcookie($this->config->get('session_name'), $this->session->getId(), (ini_get('session.cookie_lifetime') ? (time() + ini_get('session.cookie_lifetime')) : 0), ini_get('session.cookie_path'), ini_get('session.cookie_domain'), ini_get('session.cookie_secure'), ini_get('session.cookie_httponly'));
+		}
+
+		// Response output compression level
+		if ($this->config->get('config_compression')) {
+			$this->response->setCompression($this->config->get('config_compression'));
+		}
 
 		// Url
 		$this->registry->set('url', new Url($this->config->get('config_url')));
@@ -42,20 +78,18 @@ class ControllerStartupStartup extends Controller {
 
 		$language_codes = array_column($languages, 'language_id', 'code');
 
-		if (isset($this->session->data['language'])) {
-			if (array_key_exists($this->session->data['language'], $language_codes)) {
-				$code = $this->session->data['language'];
-		 	}
+		// Language Cookie
+		if (isset($this->request->cookie['language']) && array_key_exists($this->request->cookie['language'], $language_codes)) {
+			$code = $this->request->cookie['language'];
 		}
 
-		if (empty($code) && isset($this->request->cookie['language'])) {
-			if (array_key_exists($this->request->cookie['language'], $language_codes)) {
-				$code = $this->request->cookie['language'];
-			}
+		// No cookie then use the language in the url
+		if (!$code && isset($this->request->get['language']) && array_key_exists($this->request->get['language'], $language_codes)) {
+			$code = $this->request->get['language'];
 		}
 
 		// Language Detection
-		if (empty($code) && !empty($this->request->server['HTTP_ACCEPT_LANGUAGE'])) {
+		if (!$code && !empty($this->request->server['HTTP_ACCEPT_LANGUAGE'])) {
 			$detect = '';
 
 			$browser_codes = array();
@@ -100,26 +134,45 @@ class ControllerStartupStartup extends Controller {
 			$code = ($detect) ? $detect : '';
 		}
 
+		// Language not available then use default
 		if (!array_key_exists($code, $language_codes)) {
 			$code = $this->config->get('config_language');
 		}
 
-		if (!isset($this->session->data['language']) || $this->session->data['language'] != $code) {
-			$this->session->data['language'] = $code;
+		// Redirect to the new language
+		if (isset($this->request->get['language']) && $this->request->get['language'] != $code) {
+			if (isset($this->request->get['route'])) {
+				$route = $this->request->get['route'];
+			} else {
+				$route = $this->config->get('action_default');
+			}
+
+			unset($this->request->get['_route_']);
+			unset($this->request->get['route']);
+			unset($this->request->get['language']);
+
+			$url = '';
+
+			if ($this->request->get) {
+				$url = '&' . urldecode(http_build_query($this->request->get));
+			}
+
+			$this->response->redirect($this->url->link($route, 'language=' . $code . $url));
 		}
 
+		// Set a new language cookie if the code does not match the current one
 		if (!isset($this->request->cookie['language']) || $this->request->cookie['language'] != $code) {
 			setcookie('language', $code, time() + 60 * 60 * 24 * 30, '/', $this->request->server['HTTP_HOST']);
 		}
 
-		// Overwrite the default language object
+		// Replace the default language object
 		$language = new Language($code);
 		$language->load($code);
-
 		$this->registry->set('language', $language);
 
 		// Set the config language_id
 		$this->config->set('config_language_id', $language_codes[$code]);
+		$this->config->set('config_language', $code);
 
 		// Customer
 		$customer = new Cart\Customer($this->registry);
@@ -159,6 +212,7 @@ class ControllerStartupStartup extends Controller {
 			$this->session->data['currency'] = $code;
 		}
 
+		// Set a new currency cookie if the code does not match the current one
 		if (!isset($this->request->cookie['currency']) || $this->request->cookie['currency'] != $code) {
 			setcookie('currency', $code, time() + 60 * 60 * 24 * 30, '/', $this->request->server['HTTP_HOST']);
 		}
@@ -193,8 +247,5 @@ class ControllerStartupStartup extends Controller {
 
 		// Encryption
 		$this->registry->set('encryption', new Encryption());
-
-		// OpenBay Pro
-		$this->registry->set('openbay', new Openbay($this->registry));
 	}
 }

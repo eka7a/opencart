@@ -3,8 +3,8 @@
 /*
  * This file is part of Twig.
  *
- * (c) 2009 Fabien Potencier
- * (c) 2009 Armin Ronacher
+ * (c) Fabien Potencier
+ * (c) Armin Ronacher
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,17 +17,22 @@
  */
 class Twig_Node_For extends Twig_Node
 {
-    protected $loop;
+    private $loop;
 
-    public function __construct(Twig_Node_Expression_AssignName $keyTarget, Twig_Node_Expression_AssignName $valueTarget, Twig_Node_Expression $seq, Twig_Node_Expression $ifexpr = null, Twig_NodeInterface $body, Twig_NodeInterface $else = null, $lineno, $tag = null)
+    public function __construct(Twig_Node_Expression_AssignName $keyTarget, Twig_Node_Expression_AssignName $valueTarget, Twig_Node_Expression $seq, Twig_Node_Expression $ifexpr = null, Twig_Node $body, Twig_Node $else = null, $lineno, $tag = null)
     {
-        $body = new Twig_Node(array($body, $this->loop = new Twig_Node_ForLoop($lineno, $tag)));
+        $body = new Twig_Node([$body, $this->loop = new Twig_Node_ForLoop($lineno, $tag)]);
 
         if (null !== $ifexpr) {
-            $body = new Twig_Node_If(new Twig_Node(array($ifexpr, $body)), null, $lineno, $tag);
+            $body = new Twig_Node_If(new Twig_Node([$ifexpr, $body]), null, $lineno, $tag);
         }
 
-        parent::__construct(array('key_target' => $keyTarget, 'value_target' => $valueTarget, 'seq' => $seq, 'body' => $body, 'else' => $else), array('with_loop' => true, 'ifexpr' => null !== $ifexpr), $lineno, $tag);
+        $nodes = ['key_target' => $keyTarget, 'value_target' => $valueTarget, 'seq' => $seq, 'body' => $body];
+        if (null !== $else) {
+            $nodes['else'] = $else;
+        }
+
+        parent::__construct($nodes, ['with_loop' => true, 'ifexpr' => null !== $ifexpr], $lineno, $tag);
     }
 
     public function compile(Twig_Compiler $compiler)
@@ -40,18 +45,18 @@ class Twig_Node_For extends Twig_Node
             ->raw(");\n")
         ;
 
-        if (null !== $this->getNode('else')) {
+        if ($this->hasNode('else')) {
             $compiler->write("\$context['_iterated'] = false;\n");
         }
 
         if ($this->getAttribute('with_loop')) {
             $compiler
-                ->write("\$context['loop'] = array(\n")
+                ->write("\$context['loop'] = [\n")
                 ->write("  'parent' => \$context['_parent'],\n")
                 ->write("  'index0' => 0,\n")
                 ->write("  'index'  => 1,\n")
                 ->write("  'first'  => true,\n")
-                ->write(");\n")
+                ->write("];\n")
             ;
 
             if (!$this->getAttribute('ifexpr')) {
@@ -69,7 +74,7 @@ class Twig_Node_For extends Twig_Node
             }
         }
 
-        $this->loop->setAttribute('else', null !== $this->getNode('else'));
+        $this->loop->setAttribute('else', $this->hasNode('else'));
         $this->loop->setAttribute('with_loop', $this->getAttribute('with_loop'));
         $this->loop->setAttribute('ifexpr', $this->getAttribute('ifexpr'));
 
@@ -85,7 +90,7 @@ class Twig_Node_For extends Twig_Node
             ->write("}\n")
         ;
 
-        if (null !== $this->getNode('else')) {
+        if ($this->hasNode('else')) {
             $compiler
                 ->write("if (!\$context['_iterated']) {\n")
                 ->indent()
@@ -104,3 +109,5 @@ class Twig_Node_For extends Twig_Node
         $compiler->write("\$context = array_intersect_key(\$context, \$_parent) + \$_parent;\n");
     }
 }
+
+class_alias('Twig_Node_For', 'Twig\Node\ForNode', false);

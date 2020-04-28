@@ -137,7 +137,7 @@ class ControllerMarketplaceMarketplace extends Controller {
 		}
 
 		if (isset($this->request->get['filter_member'])) {
-			$url .= '&filter_member=' . $this->request->get['filter_member'];
+			$url .= '&filter_member=' . urlencode($this->request->get['filter_member']);
 		}
 
 		if (isset($this->request->get['sort'])) {
@@ -158,6 +158,8 @@ class ControllerMarketplaceMarketplace extends Controller {
 		curl_setopt($curl, CURLOPT_POST, 1);
 
 		$response = curl_exec($curl);
+
+		//echo $response;
 
 		$status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
@@ -206,8 +208,8 @@ class ControllerMarketplaceMarketplace extends Controller {
 		if ($response_info['promotions'] && $page == 1) {
 			foreach ($response_info['promotions'] as $result) {
 				$data['promotions'][] = array(
-					'name'         => $result['name'],
-					'description'  => $result['description'],
+					'name'         => utf8_decode($result['name']),
+					'description'  => utf8_decode($result['description']),
 					'image'        => $result['image'],
 					'license'      => $result['license'],
 					'price'        => $result['price'],
@@ -378,6 +380,12 @@ class ControllerMarketplaceMarketplace extends Controller {
 		);
 
 		$data['licenses'][] = array(
+			'text'  => $this->language->get('text_recommended'),
+			'value' => 'recommended',
+			'href'  => $this->url->link('marketplace/marketplace', 'user_token=' . $this->session->data['user_token'] . '&filter_license=recommended' . $url)
+		);
+
+		$data['licenses'][] = array(
 			'text'  => $this->language->get('text_free'),
 			'value' => 'free',
 			'href'  => $this->url->link('marketplace/marketplace', 'user_token=' . $this->session->data['user_token'] . '&filter_license=free' . $url)
@@ -388,7 +396,6 @@ class ControllerMarketplaceMarketplace extends Controller {
 			'value' => 'paid',
 			'href'  => $this->url->link('marketplace/marketplace', 'user_token=' . $this->session->data['user_token'] . '&filter_license=paid' . $url)
 		);
-
 
 		$data['licenses'][] = array(
 			'text'  => $this->language->get('text_purchased'),
@@ -487,13 +494,12 @@ class ControllerMarketplaceMarketplace extends Controller {
 			$url .= '&sort=' . $this->request->get['sort'];
 		}
 
-		$pagination = new Pagination();
-		$pagination->total = $extension_total;
-		$pagination->page = $page;
-		$pagination->limit = 12;
-		$pagination->url = $this->url->link('marketplace/marketplace', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}');
-
-		$data['pagination'] = $pagination->render();
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $extension_total,
+			'page'  => $page,
+			'limit' => 12,
+			'url'   => $this->url->link('marketplace/marketplace', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
+		));
 
 		$data['filter_search'] = $filter_search;
 		$data['filter_category'] = $filter_category;
@@ -646,7 +652,7 @@ class ControllerMarketplaceMarketplace extends Controller {
 
 			if ($response_info['downloads']) {
 				foreach ($response_info['downloads'] as $result) {
-					$extension_install_info = $this->model_setting_extension->getExtensionInstallByExtensionDownloadId($result['extension_download_id']);
+					$extension_install_info = $this->model_setting_extension->getInstallByExtensionDownloadId($result['extension_download_id']);
 
 					if ($extension_install_info) {
 						$extension_install_id = $extension_install_info['extension_install_id'];
@@ -880,7 +886,7 @@ class ControllerMarketplaceMarketplace extends Controller {
 
 					$this->load->model('setting/extension');
 
-					$json['extension_install_id'] = $this->model_setting_extension->addExtensionInstall($response_info['extension'], $extension_id, $extension_download_id);
+					$json['extension_install_id'] = $this->model_setting_extension->addInstall($response_info['extension'], $extension_id, $extension_download_id);
 
 					$json['text'] = $this->language->get('text_install');
 
@@ -1036,13 +1042,12 @@ class ControllerMarketplaceMarketplace extends Controller {
 			}
 		}
 
-		$pagination = new Pagination();
-		$pagination->total = $comment_total;
-		$pagination->page = $page;
-		$pagination->limit = 20;
-		$pagination->url = $this->url->link('marketplace/marketplace/comment', 'user_token=' . $this->session->data['user_token'] . '&extension_id=' . $extension_id . '&page={page}');
-
-		$data['pagination'] = $pagination->render();
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $comment_total,
+			'page'  => $page,
+			'limit' => 20,
+			'url'   => $this->url->link('marketplace/marketplace/comment', 'user_token=' . $this->session->data['user_token'] . '&extension_id=' . $extension_id . '&page={page}')
+		));
 
 		$data['refresh'] = $this->url->link('marketplace/marketplace/comment', 'user_token=' . $this->session->data['user_token'] . '&extension_id=' . $extension_id . '&page=' . $page);
 

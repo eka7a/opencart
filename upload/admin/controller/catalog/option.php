@@ -163,8 +163,8 @@ class ControllerCatalogOption extends Controller {
 		$filter_data = array(
 			'sort'  => $sort,
 			'order' => $order,
-			'start' => ($page - 1) * $this->config->get('config_limit_admin'),
-			'limit' => $this->config->get('config_limit_admin')
+			'start' => ($page - 1) * $this->config->get('config_pagination'),
+			'limit' => $this->config->get('config_pagination')
 		);
 
 		$option_total = $this->model_catalog_option->getTotalOptions();
@@ -225,15 +225,14 @@ class ControllerCatalogOption extends Controller {
 			$url .= '&order=' . $this->request->get['order'];
 		}
 
-		$pagination = new Pagination();
-		$pagination->total = $option_total;
-		$pagination->page = $page;
-		$pagination->limit = $this->config->get('config_limit_admin');
-		$pagination->url = $this->url->link('catalog/option', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}');
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $option_total,
+			'page'  => $page,
+			'limit' => $this->config->get('config_pagination'),
+			'url'   => $this->url->link('catalog/option', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
+		));
 
-		$data['pagination'] = $pagination->render();
-
-		$data['results'] = sprintf($this->language->get('text_pagination'), ($option_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($option_total - $this->config->get('config_limit_admin'))) ? $option_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $option_total, ceil($option_total / $this->config->get('config_limit_admin')));
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($option_total) ? (($page - 1) * $this->config->get('config_pagination')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination')) > ($option_total - $this->config->get('config_pagination'))) ? $option_total : ((($page - 1) * $this->config->get('config_pagination')) + $this->config->get('config_pagination')), $option_total, ceil($option_total / $this->config->get('config_pagination')));
 
 		$data['sort'] = $sort;
 		$data['order'] = $order;
@@ -312,8 +311,8 @@ class ControllerCatalogOption extends Controller {
 
 		if (isset($this->request->post['option_description'])) {
 			$data['option_description'] = $this->request->post['option_description'];
-		} elseif (isset($this->request->get['option_id'])) {
-			$data['option_description'] = $this->model_catalog_option->getOptionDescriptions($this->request->get['option_id']);
+		} elseif (!empty($option_info)) {
+			$data['option_description'] = $this->model_catalog_option->getDescriptions($this->request->get['option_id']);
 		} else {
 			$data['option_description'] = array();
 		}
@@ -336,8 +335,8 @@ class ControllerCatalogOption extends Controller {
 
 		if (isset($this->request->post['option_value'])) {
 			$option_values = $this->request->post['option_value'];
-		} elseif (isset($this->request->get['option_id'])) {
-			$option_values = $this->model_catalog_option->getOptionValueDescriptions($this->request->get['option_id']);
+		} elseif (!empty($option_info)) {
+			$option_values = $this->model_catalog_option->getValueDescriptions($this->request->get['option_id']);
 		} else {
 			$option_values = array();
 		}
@@ -347,7 +346,7 @@ class ControllerCatalogOption extends Controller {
 		$data['option_values'] = array();
 
 		foreach ($option_values as $option_value) {
-			if (is_file(DIR_IMAGE . $option_value['image'])) {
+			if (is_file(DIR_IMAGE . html_entity_decode($option_value['image'], ENT_QUOTES, 'UTF-8'))) {
 				$image = $option_value['image'];
 				$thumb = $option_value['image'];
 			} else {
@@ -359,7 +358,7 @@ class ControllerCatalogOption extends Controller {
 				'option_value_id'          => $option_value['option_value_id'],
 				'option_value_description' => $option_value['option_value_description'],
 				'image'                    => $image,
-				'thumb'                    => $this->model_tool_image->resize($thumb, 100, 100),
+				'thumb'                    => $this->model_tool_image->resize(html_entity_decode($thumb, ENT_QUOTES, 'UTF-8'), 100, 100),
 				'sort_order'               => $option_value['sort_order']
 			);
 		}
@@ -379,7 +378,7 @@ class ControllerCatalogOption extends Controller {
 		}
 
 		foreach ($this->request->post['option_description'] as $language_id => $value) {
-			if ((utf8_strlen($value['name']) < 1) || (utf8_strlen($value['name']) > 128)) {
+			if ((utf8_strlen(trim($value['name'])) < 1) || (utf8_strlen($value['name']) > 128)) {
 				$this->error['name'][$language_id] = $this->language->get('error_name');
 			}
 		}
@@ -389,9 +388,31 @@ class ControllerCatalogOption extends Controller {
 		}
 
 		if (isset($this->request->post['option_value'])) {
+			if (isset($this->request->get['option_id'])) {
+				$this->load->model('catalog/product');
+
+				$option_value_data = array();
+
+				foreach ($this->request->post['option_value'] as $option_value) {
+					if ($option_value['option_value_id']) {
+						$option_value_data[] = $option_value['option_value_id'];
+					}
+				}
+
+				$product_option_values = $this->model_catalog_product->getOptionValuesByOptionId($this->request->get['option_id']);
+
+				foreach ($product_option_values as $product_option_value) {
+					if (!in_array($product_option_value['option_value_id'], $option_value_data)) {
+						$this->error['warning'] = sprintf($this->language->get('error_value'), $this->model_catalog_product->getTotalProductsByOptionValueId($product_option_value['option_value_id']));
+					}
+				}
+			}
+		}
+
+		if (isset($this->request->post['option_value'])) {
 			foreach ($this->request->post['option_value'] as $option_value_id => $option_value) {
 				foreach ($option_value['option_value_description'] as $language_id => $option_value_description) {
-					if ((utf8_strlen($option_value_description['name']) < 1) || (utf8_strlen($option_value_description['name']) > 128)) {
+					if ((utf8_strlen(trim($option_value_description['name'])) < 1) || (utf8_strlen($option_value_description['name']) > 128)) {
 						$this->error['option_value'][$option_value_id][$language_id] = $this->language->get('error_option_value');
 					}
 				}
@@ -406,10 +427,10 @@ class ControllerCatalogOption extends Controller {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
 
-		$this->load->model('catalog/product_option');
+		$this->load->model('catalog/product');
 
 		foreach ($this->request->post['selected'] as $option_id) {
-			$product_total = $this->model_catalog_product_option->getTotalProductsByOptionId($option_id);
+			$product_total = $this->model_catalog_product->getTotalProductsByOptionId($option_id);
 
 			if ($product_total) {
 				$this->error['warning'] = sprintf($this->language->get('error_product'), $product_total);
@@ -441,11 +462,11 @@ class ControllerCatalogOption extends Controller {
 				$option_value_data = array();
 
 				if ($option['type'] == 'select' || $option['type'] == 'radio' || $option['type'] == 'checkbox' || $option['type'] == 'image') {
-					$option_values = $this->model_catalog_option->getOptionValues($option['option_id']);
+					$option_values = $this->model_catalog_option->getValues($option['option_id']);
 
 					foreach ($option_values as $option_value) {
-						if (is_file(DIR_IMAGE . $option_value['image'])) {
-							$image = $this->model_tool_image->resize($option_value['image'], 50, 50);
+						if (is_file(DIR_IMAGE . html_entity_decode($option_value['image'], ENT_QUOTES, 'UTF-8'))) {
+							$image = $this->model_tool_image->resize(html_entity_decode($option_value['image'], ENT_QUOTES, 'UTF-8'), 50, 50);
 						} else {
 							$image = $this->model_tool_image->resize('no_image.png', 50, 50);
 						}

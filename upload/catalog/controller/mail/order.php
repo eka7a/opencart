@@ -45,7 +45,7 @@ class ControllerMailOrder extends Controller {
 		// Check for any downloadable products
 		$download_status = false;
 
-		$order_products = $this->model_checkout_order->getOrderProducts($order_info['order_id']);
+		$order_products = $this->model_checkout_order->getProducts($order_info['order_id']);
 
 		foreach ($order_products as $order_product) {
 			// Check if there are any linked downloads
@@ -86,7 +86,14 @@ class ControllerMailOrder extends Controller {
 		$data['text_total'] = $language->get('text_total');
 		$data['text_footer'] = $language->get('text_footer');
 
-		$data['logo'] = $order_info['store_url'] . 'image/' . $this->config->get('config_logo');
+		$this->load->model('tool/image');
+
+		if (is_file(DIR_IMAGE . html_entity_decode($this->config->get('config_logo'), ENT_QUOTES, 'UTF-8'))) {
+			$data['logo'] = $this->model_tool_image->resize(html_entity_decode($this->config->get('config_logo'), ENT_QUOTES, 'UTF-8'), $this->config->get('theme_default_image_location_width'), $this->config->get('theme_default_image_cart_height'));
+		} else {
+			$data['logo'] = '';
+		}
+
 		$data['store_name'] = $order_info['store_name'];
 		$data['store_url'] = $order_info['store_url'];
 		$data['customer_id'] = $order_info['customer_id'];
@@ -196,7 +203,7 @@ class ControllerMailOrder extends Controller {
 		foreach ($order_products as $order_product) {
 			$option_data = array();
 
-			$order_options = $this->model_checkout_order->getOrderOptions($order_info['order_id'], $order_product['order_product_id']);
+			$order_options = $this->model_checkout_order->getOptions($order_info['order_id'], $order_product['order_product_id']);
 
 			foreach ($order_options as $order_option) {
 				if ($order_option['type'] != 'file') {
@@ -230,7 +237,7 @@ class ControllerMailOrder extends Controller {
 		// Vouchers
 		$data['vouchers'] = array();
 
-		$order_vouchers = $this->model_checkout_order->getOrderVouchers($order_info['order_id']);
+		$order_vouchers = $this->model_checkout_order->getVouchers($order_info['order_id']);
 
 		foreach ($order_vouchers as $order_voucher) {
 			$data['vouchers'][] = array(
@@ -242,7 +249,7 @@ class ControllerMailOrder extends Controller {
 		// Order Totals
 		$data['totals'] = array();
 
-		$order_totals = $this->model_checkout_order->getOrderTotals($order_info['order_id']);
+		$order_totals = $this->model_checkout_order->getTotals($order_info['order_id']);
 
 		foreach ($order_totals as $order_total) {
 			$data['totals'][] = array(
@@ -253,7 +260,7 @@ class ControllerMailOrder extends Controller {
 
 		$this->load->model('setting/setting');
 
-		$from = $this->model_setting_setting->getSettingValue('config_email', $order_info['store_id']);
+		$from = $this->model_setting_setting->getValue('config_email', $order_info['store_id']);
 
 		if (!$from) {
 			$from = $this->config->get('config_email');
@@ -275,7 +282,7 @@ class ControllerMailOrder extends Controller {
 		$mail->send();
 	}
 
-	public function edit($order_info, $order_status_id, $comment) {
+	public function edit($order_info, $order_status_id, $comment, $notify) {
 		$language = new Language($order_info['language_code']);
 		$language->load($order_info['language_code']);
 		$language->load('mail/order_edit');
@@ -289,16 +296,8 @@ class ControllerMailOrder extends Controller {
 
 		$data['order_id'] = $order_info['order_id'];
 		$data['date_added'] = date($language->get('date_format_short'), strtotime($order_info['date_added']));
-		$data['store_url'] = HTTP_SERVER;
+		$data['store_url'] = $this->config->get('config_url');
 		$data['store'] = html_entity_decode($this->config->get('config_name'), ENT_QUOTES, 'UTF-8');
-
-		$this->load->model('tool/image');
-
-		if (is_file(DIR_IMAGE . $this->config->get('config_logo'))) {
-			$data['logo'] = $this->model_tool_image->resize($this->config->get('config_logo'), $this->config->get('theme_default_image_location_width'), $this->config->get('theme_default_image_cart_height'));
-		} else {
-			$data['logo'] = '';
-		}
 
 		$order_status_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_status WHERE order_status_id = '" . (int)$order_status_id . "' AND language_id = '" . (int)$order_info['language_id'] . "'");
 
@@ -318,7 +317,7 @@ class ControllerMailOrder extends Controller {
 
 		$this->load->model('setting/setting');
 
-		$from = $this->model_setting_setting->getSettingValue('config_email', $order_info['store_id']);
+		$from = $this->model_setting_setting->getValue('config_email', $order_info['store_id']);
 
 		if (!$from) {
 			$from = $this->config->get('config_email');
@@ -336,11 +335,11 @@ class ControllerMailOrder extends Controller {
 		$mail->setFrom($from);
 		$mail->setSender(html_entity_decode($order_info['store_name'], ENT_QUOTES, 'UTF-8'));
 		$mail->setSubject(html_entity_decode(sprintf($language->get('text_subject'), $order_info['store_name'], $order_info['order_id']), ENT_QUOTES, 'UTF-8'));
-		$mail->setHtml($this->load->view('mail/order_edit', $data));
+		$mail->setText($this->load->view('mail/order_edit', $data));
 		$mail->send();
 	}
 
-	// Admin Alert Mail
+	// catalog/model/checkout/order/addHistory/before
 	public function alert(&$route, &$args) {
 		if (isset($args[0])) {
 			$order_id = $args[0];
@@ -391,13 +390,13 @@ class ControllerMailOrder extends Controller {
 				$data['order_status'] = '';
 			}
 
-			$data['store_url'] = HTTP_SERVER;
+			$data['store_url'] = $this->config->get('config_url');
 			$data['store'] = html_entity_decode($this->config->get('config_name'), ENT_QUOTES, 'UTF-8');
 
 			$this->load->model('tool/image');
 
-			if (is_file(DIR_IMAGE . $this->config->get('config_logo'))) {
-				$data['logo'] = $this->model_tool_image->resize($this->config->get('config_logo'), $this->config->get('theme_default_image_location_width'), $this->config->get('theme_default_image_cart_height'));
+			if (is_file(DIR_IMAGE . html_entity_decode($this->config->get('config_logo'), ENT_QUOTES, 'UTF-8'))) {
+				$data['logo'] = $this->model_tool_image->resize(html_entity_decode($this->config->get('config_logo'), ENT_QUOTES, 'UTF-8'), $this->config->get('theme_default_image_location_width'), $this->config->get('theme_default_image_cart_height'));
 			} else {
 				$data['logo'] = '';
 			}
@@ -406,12 +405,12 @@ class ControllerMailOrder extends Controller {
 
 			$data['products'] = array();
 
-			$order_products = $this->model_checkout_order->getOrderProducts($order_id);
+			$order_products = $this->model_checkout_order->getProducts($order_id);
 
 			foreach ($order_products as $order_product) {
 				$option_data = array();
 
-				$order_options = $this->model_checkout_order->getOrderOptions($order_info['order_id'], $order_product['order_product_id']);
+				$order_options = $this->model_checkout_order->getOptions($order_info['order_id'], $order_product['order_product_id']);
 
 				foreach ($order_options as $order_option) {
 					if ($order_option['type'] != 'file') {
@@ -443,7 +442,7 @@ class ControllerMailOrder extends Controller {
 
 			$data['vouchers'] = array();
 
-			$order_vouchers = $this->model_checkout_order->getOrderVouchers($order_id);
+			$order_vouchers = $this->model_checkout_order->getVouchers($order_id);
 
 			foreach ($order_vouchers as $order_voucher) {
 				$data['vouchers'][] = array(
@@ -454,7 +453,7 @@ class ControllerMailOrder extends Controller {
 
 			$data['totals'] = array();
 
-			$order_totals = $this->model_checkout_order->getOrderTotals($order_id);
+			$order_totals = $this->model_checkout_order->getTotals($order_id);
 
 			foreach ($order_totals as $order_total) {
 				$data['totals'][] = array(
@@ -477,7 +476,7 @@ class ControllerMailOrder extends Controller {
 			$mail->setFrom($this->config->get('config_email'));
 			$mail->setSender(html_entity_decode($order_info['store_name'], ENT_QUOTES, 'UTF-8'));
 			$mail->setSubject(html_entity_decode(sprintf($this->language->get('text_subject'), $this->config->get('config_name'), $order_info['order_id']), ENT_QUOTES, 'UTF-8'));
-			$mail->setHtml($this->load->view('mail/order_alert', $data));
+			$mail->setText($this->load->view('mail/order_alert', $data));
 			$mail->send();
 
 			// Send to additional alert emails

@@ -1,22 +1,12 @@
 <?php
 class ControllerMarketingContact extends Controller {
-	private $error = array();
-
 	public function index() {
 		$this->load->language('marketing/contact');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
-		$this->document->addStyle('view/javascript/codemirror/lib/codemirror.css');
-		$this->document->addStyle('view/javascript/codemirror/theme/monokai.css');
-		$this->document->addStyle('view/javascript/summernote/summernote.css');
-
-		$this->document->addScript('view/javascript/codemirror/lib/codemirror.js');
-		$this->document->addScript('view/javascript/codemirror/lib/xml.js');
-		$this->document->addScript('view/javascript/codemirror/lib/formatting.js');
-		$this->document->addScript('view/javascript/summernote/summernote.js');
-		$this->document->addScript('view/javascript/summernote/summernote-image-attributes.js');
-		$this->document->addScript('view/javascript/summernote/opencart.js');
+		$this->document->addScript('view/javascript/ckeditor/ckeditor.js');
+		$this->document->addScript('view/javascript/ckeditor/adapters/jquery.js');
 
 		$data['user_token'] = $this->session->data['user_token'];
 
@@ -237,8 +227,6 @@ class ControllerMarketingContact extends Controller {
 							$mail->send();
 						}
 					}
-				} else {
-					$json['error']['email'] = $this->language->get('error_email');
 				}
 			}
 		}

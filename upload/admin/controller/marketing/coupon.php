@@ -163,8 +163,8 @@ class ControllerMarketingCoupon extends Controller {
 		$filter_data = array(
 			'sort'  => $sort,
 			'order' => $order,
-			'start' => ($page - 1) * $this->config->get('config_limit_admin'),
-			'limit' => $this->config->get('config_limit_admin')
+			'start' => ($page - 1) * $this->config->get('config_pagination'),
+			'limit' => $this->config->get('config_pagination')
 		);
 
 		$coupon_total = $this->model_marketing_coupon->getTotalCoupons();
@@ -233,15 +233,14 @@ class ControllerMarketingCoupon extends Controller {
 			$url .= '&order=' . $this->request->get['order'];
 		}
 
-		$pagination = new Pagination();
-		$pagination->total = $coupon_total;
-		$pagination->page = $page;
-		$pagination->limit = $this->config->get('config_limit_admin');
-		$pagination->url = $this->url->link('marketing/coupon', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}');
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $coupon_total,
+			'page'  => $page,
+			'limit' => $this->config->get('config_pagination'),
+			'url'   => $this->url->link('marketing/coupon', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
+		));
 
-		$data['pagination'] = $pagination->render();
-
-		$data['results'] = sprintf($this->language->get('text_pagination'), ($coupon_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($coupon_total - $this->config->get('config_limit_admin'))) ? $coupon_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $coupon_total, ceil($coupon_total / $this->config->get('config_limit_admin')));
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($coupon_total) ? (($page - 1) * $this->config->get('config_pagination')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination')) > ($coupon_total - $this->config->get('config_pagination'))) ? $coupon_total : ((($page - 1) * $this->config->get('config_pagination')) + $this->config->get('config_pagination')), $coupon_total, ceil($coupon_total / $this->config->get('config_pagination')));
 
 		$data['sort'] = $sort;
 		$data['order'] = $order;
@@ -390,21 +389,21 @@ class ControllerMarketingCoupon extends Controller {
 
 		if (isset($this->request->post['coupon_product'])) {
 			$products = $this->request->post['coupon_product'];
-		} elseif (isset($this->request->get['coupon_id'])) {
-			$products = $this->model_marketing_coupon->getCouponProducts($this->request->get['coupon_id']);
+		} elseif (!empty($coupon_info)) {
+			$products = $this->model_marketing_coupon->getProducts($this->request->get['coupon_id']);
 		} else {
 			$products = array();
 		}
 
 		$this->load->model('catalog/product');
 
-		$data['coupon_product'] = array();
+		$data['coupon_products'] = array();
 
 		foreach ($products as $product_id) {
 			$product_info = $this->model_catalog_product->getProduct($product_id);
 
 			if ($product_info) {
-				$data['coupon_product'][] = array(
+				$data['coupon_products'][] = array(
 					'product_id' => $product_info['product_id'],
 					'name'       => $product_info['name']
 				);
@@ -413,21 +412,21 @@ class ControllerMarketingCoupon extends Controller {
 
 		if (isset($this->request->post['coupon_category'])) {
 			$categories = $this->request->post['coupon_category'];
-		} elseif (isset($this->request->get['coupon_id'])) {
-			$categories = $this->model_marketing_coupon->getCouponCategories($this->request->get['coupon_id']);
+		} elseif (!empty($coupon_info)) {
+			$categories = $this->model_marketing_coupon->getCategories($this->request->get['coupon_id']);
 		} else {
 			$categories = array();
 		}
 
 		$this->load->model('catalog/category');
 
-		$data['coupon_category'] = array();
+		$data['coupon_categories'] = array();
 
 		foreach ($categories as $category_id) {
 			$category_info = $this->model_catalog_category->getCategory($category_id);
 
 			if ($category_info) {
-				$data['coupon_category'][] = array(
+				$data['coupon_categories'][] = array(
 					'category_id' => $category_info['category_id'],
 					'name'        => ($category_info['path'] ? $category_info['path'] . ' &gt; ' : '') . $category_info['name']
 				);
@@ -534,7 +533,7 @@ class ControllerMarketingCoupon extends Controller {
 
 		$data['histories'] = array();
 
-		$results = $this->model_marketing_coupon->getCouponHistories($coupon_id, ($page - 1) * 10, 10);
+		$results = $this->model_marketing_coupon->getHistories($coupon_id, ($page - 1) * 10, 10);
 
 		foreach ($results as $result) {
 			$data['histories'][] = array(
@@ -545,15 +544,14 @@ class ControllerMarketingCoupon extends Controller {
 			);
 		}
 
-		$history_total = $this->model_marketing_coupon->getTotalCouponHistories($coupon_id);
+		$history_total = $this->model_marketing_coupon->getTotalHistories($coupon_id);
 
-		$pagination = new Pagination();
-		$pagination->total = $history_total;
-		$pagination->page = $page;
-		$pagination->limit = 10;
-		$pagination->url = $this->url->link('marketing/coupon/history', 'user_token=' . $this->session->data['user_token'] . '&coupon_id=' . $coupon_id . '&page={page}');
-
-		$data['pagination'] = $pagination->render();
+		$data['pagination'] = $this->load->controller('common/pagination', array(
+			'total' => $history_total,
+			'page'  => $page,
+			'limit' => 10,
+			'url'   => $this->url->link('marketing/coupon/history', 'user_token=' . $this->session->data['user_token'] . '&coupon_id=' . $coupon_id . '&page={page}')
+		));
 
 		$data['results'] = sprintf('Showing %d to %d of %d (%d Pages)', ($history_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($history_total - 10)) ? $history_total : ((($page - 1) * 10) + 10), $history_total, ceil($history_total / 10));
 
