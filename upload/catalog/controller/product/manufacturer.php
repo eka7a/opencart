@@ -34,6 +34,7 @@ class ControllerProductManufacturer extends Controller {
 
 			if (!isset($data['categories'][$key])) {
 				$data['categories'][$key]['name'] = $key;
+				$data['categories'][$key]['href'] = $this->url->link('product/manufacturer', 'language=' . $this->config->get('config_language'));
 			}
 
 			$data['categories'][$key]['manufacturer'][] = array(
@@ -178,13 +179,7 @@ class ControllerProductManufacturer extends Controller {
 					$tax = false;
 				}
 
-				if ($this->config->get('config_review_status')) {
-					$rating = (int)$result['rating'];
-				} else {
-					$rating = false;
-				}
-
-				$data['products'][] = array(
+				$product_data = array(
 					'product_id'  => $result['product_id'],
 					'thumb'       => $image,
 					'name'        => $result['name'],
@@ -196,6 +191,8 @@ class ControllerProductManufacturer extends Controller {
 					'rating'      => $result['rating'],
 					'href'        => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&manufacturer_id=' . $result['manufacturer_id'] . '&product_id=' . $result['product_id'] . $url)
 				);
+
+				$data['products'][] = $this->load->controller('product/thumb', $product_data);
 			}
 
 			$url = '';

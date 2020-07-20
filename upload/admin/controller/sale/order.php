@@ -382,7 +382,7 @@ class ControllerSaleOrder extends Controller {
 
 			$session->start();
 
-			$this->model_user_api->deleteSessionBySessonId($session->getId());
+			$this->model_user_api->deleteSessionBySessionId($session->getId());
 
 			$this->model_user_api->addSession($api_info['api_id'], $session->getId(), $this->request->server['REMOTE_ADDR']);
 
@@ -692,7 +692,7 @@ class ControllerSaleOrder extends Controller {
 
 			$session->start();
 
-			$this->model_user_api->deleteSessionBySessonId($session->getId());
+			$this->model_user_api->deleteSessionBySessionId($session->getId());
 
 			$this->model_user_api->addSession($api_info['api_id'], $session->getId(), $this->request->server['REMOTE_ADDR']);
 
@@ -992,8 +992,6 @@ class ControllerSaleOrder extends Controller {
 
 			$data['commission'] = $this->currency->format($order_info['commission'], $order_info['currency_code'], $order_info['currency_value']);
 
-			$this->load->model('customer/customer');
-
 			$data['commission_total'] = $this->model_customer_customer->getTotalTransactionsByOrderId($this->request->get['order_id']);
 
 			$this->load->model('localisation/order_status');
@@ -1235,7 +1233,7 @@ class ControllerSaleOrder extends Controller {
 
 				$session->start();
 
-				$this->model_user_api->deleteSessionBySessonId($session->getId());
+				$this->model_user_api->deleteSessionBySessionId($session->getId());
 
 				$this->model_user_api->addSession($api_info['api_id'], $session->getId(), $this->request->server['REMOTE_ADDR']);
 

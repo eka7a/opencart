@@ -1,8 +1,18 @@
-# OpenCart
+22# OpenCart
 
 ## Overview
 
 OpenCart is a free open source ecommerce platform for online merchants. OpenCart provides a professional and reliable foundation from which to build a successful online store.
+
+
+## How to install
+
+Please read the [installation instructions](INSTALL.md) included in the repository or download file.
+
+
+## How to upgrade from previous versions
+
+Please read the [upgrading instructions](UPGRADE.md) included in the repository or download file.
 
 ## Reporting a bug
 
@@ -20,12 +30,6 @@ If you are not sure about your issue, it is always best to ask the community on 
 **Important!**
 - If your bug report is not related to the core code (such as a 3rd party module or your server configuration) then the issue will be closed without a reason. You must contact the extension developer, use the forum or find a commercial partner to resolve a 3rd party code issue.
 - If you would like to report a serious security bug please PM an OpenCart moderator/administrator on the forum. Please do not report concept/ideas/unproven security flaws - all security reports are taken seriously but you must include the EXACT details steps to reproduce it. Please DO NOT post security flaws in a public location.
-
-## Making a suggestion
-
-Please do not create a bug report if you think something needs improving / adding (such as features or change to code standards etc).
-
-We welcome public suggestions on our [User Voice site](https://opencart.uservoice.com).
 
 ## How to contribute
 
@@ -59,9 +63,6 @@ If a bug is found in an announced developer release that is significant (such as
 
 To receive developer notifications about release information, sign up to the newsletter on the [OpenCart website](https://www.opencart.com) - located in the footer. Then choose the developer news option.
 
-## How to install
-
-Please read the installation instructions included in the repository or download file.
 
 ## License
 
