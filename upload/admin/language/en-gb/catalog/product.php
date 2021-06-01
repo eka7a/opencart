@@ -18,7 +18,7 @@ $_['text_default']           = 'Default';
 $_['text_keyword']           = 'Do not use spaces, instead replace spaces with - and make sure the SEO URL is globally unique.';
 $_['text_option_add']        = 'Add Option';
 $_['text_option_value']      = 'Option Value';
-$_['text_select']        	 = 'Select';
+$_['text_select']            = 'Select';
 $_['text_radio']             = 'Radio';
 $_['text_checkbox']          = 'Checkbox';
 $_['text_input']             = 'Input';
@@ -40,9 +40,6 @@ $_['column_image']           = 'Image';
 $_['column_price']           = 'Price';
 $_['column_quantity']        = 'Quantity';
 $_['column_status']          = 'Status';
-$_['column_entry']           = 'Entry Name';
-$_['column_master']          = 'Master';
-$_['column_variant']         = 'Variant';
 $_['column_action']          = 'Action';
 
 // Entry

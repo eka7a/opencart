@@ -1,6 +1,7 @@
 <?php
-class ControllerInstallPromotion extends Controller {
-	public function index() {
+namespace Opencart\Install\Controller\Install;
+class Promotion extends \Opencart\System\Engine\Controller {
+	public function index(): string {
 		$curl = curl_init();
 
 		curl_setopt($curl, CURLOPT_URL, 'https://www.opencart.com/index.php?route=api/install');

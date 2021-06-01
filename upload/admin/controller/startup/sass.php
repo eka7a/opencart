@@ -1,6 +1,7 @@
 <?php
-class ControllerStartupSass extends Controller {
-	public function index() {
+namespace Opencart\Admin\Controller\Startup;
+class Sass extends \Opencart\System\Engine\Controller {
+	public function index(): void {
 		$files = glob(DIR_APPLICATION . 'view/stylesheet/*.scss');
 
 		if ($files) {

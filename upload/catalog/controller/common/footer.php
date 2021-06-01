@@ -1,23 +1,24 @@
 <?php
-class ControllerCommonFooter extends Controller {
-	public function index() {
+namespace Opencart\Catalog\Controller\Common;
+class Footer extends \Opencart\System\Engine\Controller {
+	public function index(): string {
 		$this->load->language('common/footer');
 
 		$this->load->model('catalog/information');
 
-		$data['informations'] = array();
+		$data['informations'] = [];
 
 		foreach ($this->model_catalog_information->getInformations() as $result) {
 			if ($result['bottom']) {
-				$data['informations'][] = array(
+				$data['informations'][] = [
 					'title' => $result['title'],
 					'href'  => $this->url->link('information/information', 'language=' . $this->config->get('config_language') . '&information_id=' . $result['information_id'])
-				);
+				];
 			}
 		}
 
 		$data['contact'] = $this->url->link('information/contact', 'language=' . $this->config->get('config_language'));
-		$data['return'] = $this->url->link('account/return/add', 'language=' . $this->config->get('config_language'));
+		$data['return'] = $this->url->link('account/returns|add', 'language=' . $this->config->get('config_language'));
 
 		if ($this->config->get('config_gdpr_id')) {
 			$data['gdpr'] = $this->url->link('information/gdpr', 'language=' . $this->config->get('config_language'));
@@ -29,7 +30,13 @@ class ControllerCommonFooter extends Controller {
 		$data['tracking'] = $this->url->link('information/tracking', 'language=' . $this->config->get('config_language'));
 		$data['manufacturer'] = $this->url->link('product/manufacturer', 'language=' . $this->config->get('config_language'));
 		$data['voucher'] = $this->url->link('account/voucher', 'language=' . $this->config->get('config_language'));
-		$data['affiliate'] = $this->url->link('affiliate/login', 'language=' . $this->config->get('config_language'));
+
+		if ($this->config->get('config_affiliate_status')) {
+			$data['affiliate'] = $this->url->link('affiliate/login', 'language=' . $this->config->get('config_language'));
+		} else {
+			$data['affiliate'] = false;
+		}
+
 		$data['special'] = $this->url->link('product/special', 'language=' . $this->config->get('config_language'));
 		$data['account'] = $this->url->link('account/account', 'language=' . $this->config->get('config_language'));
 		$data['order'] = $this->url->link('account/order', 'language=' . $this->config->get('config_language'));
@@ -65,7 +72,11 @@ class ControllerCommonFooter extends Controller {
 			$this->model_tool_online->addOnline($ip, $this->customer->getId(), $url, $referer);
 		}
 
+		$data['bootstrap_js'] = 'catalog/view/javascript/bootstrap/js/bootstrap.bundle.min.js';
+
 		$data['scripts'] = $this->document->getScripts('footer');
+
+		$data['cookie'] = $this->load->controller('common/cookie');
 
 		return $this->load->view('common/footer', $data);
 	}

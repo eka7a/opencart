@@ -1,44 +1,30 @@
 <?php
-class ControllerToolLog extends Controller {
-	private $error = array();
-
-	public function index() {		
+namespace Opencart\Admin\Controller\Tool;
+class Log extends \Opencart\System\Engine\Controller {
+	public function index(): void {
 		$this->load->language('tool/log');
 		
 		$this->document->setTitle($this->language->get('heading_title'));
 
+		$data['breadcrumbs'] = [];
+
+		$data['breadcrumbs'][] = [
+			'text' => $this->language->get('text_home'),
+			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
+		];
+
+		$data['breadcrumbs'][] = [
+			'text' => $this->language->get('heading_title'),
+			'href' => $this->url->link('tool/log', 'user_token=' . $this->session->data['user_token'])
+		];
+
 		if (isset($this->session->data['error'])) {
 			$data['error_warning'] = $this->session->data['error'];
-
-			unset($this->session->data['error']);
-		} elseif (isset($this->error['warning'])) {
-			$data['error_warning'] = $this->error['warning'];
 		} else {
 			$data['error_warning'] = '';
 		}
 
-		if (isset($this->session->data['success'])) {
-			$data['success'] = $this->session->data['success'];
-
-			unset($this->session->data['success']);
-		} else {
-			$data['success'] = '';
-		}
-
-		$data['breadcrumbs'] = array();
-
-		$data['breadcrumbs'][] = array(
-			'text' => $this->language->get('text_home'),
-			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
-		);
-
-		$data['breadcrumbs'][] = array(
-			'text' => $this->language->get('heading_title'),
-			'href' => $this->url->link('tool/log', 'user_token=' . $this->session->data['user_token'])
-		);
-
-		$data['download'] = $this->url->link('tool/log/download', 'user_token=' . $this->session->data['user_token']);
-		$data['clear'] = $this->url->link('tool/log/clear', 'user_token=' . $this->session->data['user_token']);
+		$data['download'] = $this->url->link('tool/log|download', 'user_token=' . $this->session->data['user_token']);
 
 		$data['log'] = '';
 
@@ -48,7 +34,7 @@ class ControllerToolLog extends Controller {
 			$size = filesize($file);
 
 			if ($size >= 3145728) {
-				$suffix = array(
+				$suffix = [
 					'B',
 					'KB',
 					'MB',
@@ -58,7 +44,7 @@ class ControllerToolLog extends Controller {
 					'EB',
 					'ZB',
 					'YB'
-				);
+				];
 
 				$i = 0;
 
@@ -77,6 +63,8 @@ class ControllerToolLog extends Controller {
 			fclose($handle);
 		}
 
+		$data['user_token'] = $this->session->data['user_token'];
+
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['footer'] = $this->load->controller('common/footer');
@@ -84,12 +72,12 @@ class ControllerToolLog extends Controller {
 		$this->response->setOutput($this->load->view('tool/log', $data));
 	}
 
-	public function download() {
+	public function download(): void {
 		$this->load->language('tool/log');
 
 		$file = DIR_LOGS . $this->config->get('config_error_filename');
 
-		if (file_exists($file) && filesize($file) > 0) {
+		if (is_file($file) && filesize($file) > 0) {
 			$this->response->addheader('Pragma: public');
 			$this->response->addheader('Expires: 0');
 			$this->response->addheader('Content-Description: File Transfer');
@@ -105,21 +93,26 @@ class ControllerToolLog extends Controller {
 		}
 	}
 	
-	public function clear() {
+	public function clear(): void {
 		$this->load->language('tool/log');
 
+		$json = [];
+
 		if (!$this->user->hasPermission('modify', 'tool/log')) {
-			$this->session->data['error'] = $this->language->get('error_permission');
-		} else {
+			$json['error'] = $this->language->get('error_permission');
+		}
+
+		if (!$json) {
 			$file = DIR_LOGS . $this->config->get('config_error_filename');
 
 			$handle = fopen($file, 'w+');
 
 			fclose($handle);
 
-			$this->session->data['success'] = $this->language->get('text_success');
+			$json['success'] = $this->language->get('text_success');
 		}
 
-		$this->response->redirect($this->url->link('tool/log', 'user_token=' . $this->session->data['user_token']));
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
 	}
 }

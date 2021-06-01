@@ -1,15 +1,31 @@
 <?php
-namespace Mail;
+namespace Opencart\System\Library\Mail;
 class Smtp {
-	public $smtp_hostname;
-	public $smtp_username;
-	public $smtp_password;
-	public $smtp_port = 25;
-	public $smtp_timeout = 5;
-	public $max_attempts = 3;
-	public $verp = false;
+	protected string $to = '';
+	protected string $from = '';
+	protected string $sender = '';
+	protected string $reply_to = '';
+	protected string $subject = '';
+	protected string $text = '';
+	protected string $html = '';
+	protected array $attachments = [];
+	protected string $smtp_hostname = '';
+	protected string $smtp_username = '';
+	protected string $smtp_password = '';
+	protected int $smtp_port = 25;
+	protected int $smtp_timeout = 5;
+	protected int $max_attempts = 3;
+	protected bool $verp = false;
 
-	public function send() {
+	public function __construct(array $args) {
+		foreach ($args as $key => $value) {
+			if (property_exists($this, $key)) {
+				$this->{$key} = $value;
+			}
+		}
+	}
+
+	public function send(): bool {
 		if (is_array($this->to)) {
 			$to = implode(',', $this->to);
 		} else {
@@ -37,25 +53,25 @@ class Smtp {
 		if (!$this->html) {
 			$message = '--' . $boundary . PHP_EOL;
 			$message .= 'Content-Type: text/plain; charset="utf-8"' . PHP_EOL;
-			$message .= 'Content-Transfer-Encoding: 8bit' . PHP_EOL . PHP_EOL;
-			$message .= $this->text . PHP_EOL;
+			$message .= 'Content-Transfer-Encoding: base64' . PHP_EOL . PHP_EOL;
+			$message .= base64_encode($this->text) . PHP_EOL;
 		} else {
 			$message = '--' . $boundary . PHP_EOL;
 			$message .= 'Content-Type: multipart/alternative; boundary="' . $boundary . '_alt"' . PHP_EOL . PHP_EOL;
 			$message .= '--' . $boundary . '_alt' . PHP_EOL;
 			$message .= 'Content-Type: text/plain; charset="utf-8"' . PHP_EOL;
-			$message .= 'Content-Transfer-Encoding: 8bit' . PHP_EOL . PHP_EOL;
+			$message .= 'Content-Transfer-Encoding: base64' . PHP_EOL . PHP_EOL;
 
 			if ($this->text) {
-				$message .= $this->text . PHP_EOL;
+				$message .= base64_encode($this->text) . PHP_EOL;
 			} else {
-				$message .= 'This is a HTML email and your email client software does not support HTML email!' . PHP_EOL;
+				$message .= base64_encode('This is a HTML email and your email client software does not support HTML email!') . PHP_EOL;
 			}
 
 			$message .= '--' . $boundary . '_alt' . PHP_EOL;
 			$message .= 'Content-Type: text/html; charset="utf-8"' . PHP_EOL;
-			$message .= 'Content-Transfer-Encoding: 8bit' . PHP_EOL . PHP_EOL;
-			$message .= $this->html . PHP_EOL;
+			$message .= 'Content-Transfer-Encoding: base64' . PHP_EOL . PHP_EOL;
+			$message .= base64_encode($this->html) . PHP_EOL;
 			$message .= '--' . $boundary . '_alt--' . PHP_EOL;
 		}
 
@@ -214,6 +230,8 @@ class Smtp {
 
 			fclose($handle);
 		}
+
+		return true;
 	}
 
 	private function handleReply($handle, $status_code = false, $error_text = false, $counter = 0) {

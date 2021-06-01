@@ -1,21 +1,22 @@
 <?php
-class ControllerCheckoutCart extends Controller {
-	public function index() {
+namespace Opencart\Catalog\Controller\Checkout;
+class Cart extends \Opencart\System\Engine\Controller {
+	public function index(): void {
 		$this->load->language('checkout/cart');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
-		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'] = [];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/home', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('heading_title'),
 			'href' => $this->url->link('checkout/cart', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
 		if ($this->cart->hasProducts() || !empty($this->session->data['vouchers'])) {
 			if (!$this->cart->hasStock() && (!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning'))) {
@@ -42,7 +43,7 @@ class ControllerCheckoutCart extends Controller {
 				$data['success'] = '';
 			}
 
-			$data['action'] = $this->url->link('checkout/cart/edit', 'language=' . $this->config->get('config_language'));
+			$data['action'] = $this->url->link('checkout/cart|edit', 'language=' . $this->config->get('config_language'));
 
 			if ($this->config->get('config_cart_weight')) {
 				$data['weight'] = $this->weight->format($this->cart->getWeight(), $this->config->get('config_weight_class_id'), $this->language->get('decimal_point'), $this->language->get('thousand_point'));
@@ -53,15 +54,15 @@ class ControllerCheckoutCart extends Controller {
 			$this->load->model('tool/image');
 			$this->load->model('tool/upload');
 
-			$frequencies = array(
+			$frequencies = [
 				'day'        => $this->language->get('text_day'),
 				'week'       => $this->language->get('text_week'),
 				'semi_month' => $this->language->get('text_semi_month'),
 				'month'      => $this->language->get('text_month'),
 				'year'       => $this->language->get('text_year')
-			);
+			];
 
-			$data['products'] = array();
+			$data['products'] = [];
 
 			$products = $this->cart->getProducts();
 
@@ -79,12 +80,12 @@ class ControllerCheckoutCart extends Controller {
 				}
 
 				if ($product['image']) {
-					$image = $this->model_tool_image->resize(html_entity_decode($product['image'], ENT_QUOTES, 'UTF-8'), $this->config->get('theme_' . $this->config->get('config_theme') . '_image_cart_width'), $this->config->get('theme_' . $this->config->get('config_theme') . '_image_cart_height'));
+					$image = $this->model_tool_image->resize(html_entity_decode($product['image'], ENT_QUOTES, 'UTF-8'), $this->config->get('config_image_cart_width'), $this->config->get('config_image_cart_height'));
 				} else {
-					$image = $this->model_tool_image->resize('placeholder.png', $this->config->get('theme_' . $this->config->get('config_theme') . '_image_cart_width'), $this->config->get('theme_' . $this->config->get('config_theme') . '_image_cart_height'));
+					$image = $this->model_tool_image->resize('placeholder.png', $this->config->get('config_image_cart_width'), $this->config->get('config_image_cart_height'));
 				}
 
-				$option_data = array();
+				$option_data = [];
 
 				foreach ($product['option'] as $option) {
 					if ($option['type'] != 'file') {
@@ -99,10 +100,10 @@ class ControllerCheckoutCart extends Controller {
 						}
 					}
 
-					$option_data[] = array(
+					$option_data[] = [
 						'name'  => $option['name'],
 						'value' => (utf8_strlen($value) > 20 ? utf8_substr($value, 0, 20) . '..' : $value)
-					);
+					];
 				}
 
 				// Display prices
@@ -130,7 +131,7 @@ class ControllerCheckoutCart extends Controller {
 					}
 				}
 
-				$data['products'][] = array(
+				$data['products'][] = [
 					'cart_id'   => $product['cart_id'],
 					'thumb'     => $image,
 					'name'      => $product['name'],
@@ -143,35 +144,35 @@ class ControllerCheckoutCart extends Controller {
 					'price'     => $price,
 					'total'     => $total,
 					'href'      => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product['product_id'])
-				);
+				];
 			}
 
 			// Gift Voucher
-			$data['vouchers'] = array();
+			$data['vouchers'] = [];
 
 			if (!empty($this->session->data['vouchers'])) {
 				foreach ($this->session->data['vouchers'] as $key => $voucher) {
-					$data['vouchers'][] = array(
+					$data['vouchers'][] = [
 						'key'         => $key,
 						'description' => $voucher['description'],
 						'amount'      => $this->currency->format($voucher['amount'], $this->session->data['currency']),
 						'remove'      => $this->url->link('checkout/cart', 'language=' . $this->config->get('config_language') . '&remove=' . $key)
-					);
+					];
 				}
 			}
 
 			// Totals
 			$this->load->model('setting/extension');
 
-			$totals = array();
+			$totals = [];
 			$taxes = $this->cart->getTaxes();
 			$total = 0;
 
 			// Display prices
 			if ($this->customer->isLogged() || !$this->config->get('config_customer_price')) {
-				$sort_order = array();
+				$sort_order = [];
 
-				$results = $this->model_setting_extension->getExtensions('total');
+				$results = $this->model_setting_extension->getExtensionsByType('total');
 
 				foreach ($results as $key => $value) {
 					$sort_order[$key] = $this->config->get('total_' . $value['code'] . '_sort_order');
@@ -181,14 +182,14 @@ class ControllerCheckoutCart extends Controller {
 
 				foreach ($results as $result) {
 					if ($this->config->get('total_' . $result['code'] . '_status')) {
-						$this->load->model('extension/total/' . $result['code']);
+						$this->load->model('extension/' . $result['extension'] . '/total/' . $result['code']);
 
 						// __call can not pass-by-reference so we get PHP to call it as an anonymous function.
-						($this->{'model_extension_total_' . $result['code']}->getTotal)($totals, $taxes, $total);
+						($this->{'model_extension_' . $result['extension'] . '_total_' . $result['code']}->getTotal)($totals, $taxes, $total);
 					}
 				}
 
-				$sort_order = array();
+				$sort_order = [];
 
 				foreach ($totals as $key => $value) {
 					$sort_order[$key] = $value['sort_order'];
@@ -197,28 +198,25 @@ class ControllerCheckoutCart extends Controller {
 				array_multisort($sort_order, SORT_ASC, $totals);
 			}
 
-			$data['totals'] = array();
+			$data['totals'] = [];
 
 			foreach ($totals as $total) {
-				$data['totals'][] = array(
+				$data['totals'][] = [
 					'title' => $total['title'],
 					'text'  => $this->currency->format($total['value'], $this->session->data['currency'])
-				);
+				];
 			}
 
 			$data['continue'] = $this->url->link('common/home', 'language=' . $this->config->get('config_language'));
-
 			$data['checkout'] = $this->url->link('checkout/checkout', 'language=' . $this->config->get('config_language'));
 
-			$data['modules'] = array();
+			$data['modules'] = [];
 
-			$files = glob(DIR_APPLICATION . '/controller/extension/total/*.php');
+			foreach ($results as $result) {
+				if ($this->config->get('total_' . $result['code'] . '_status')) {
+					$result = $this->load->controller('extension/' . $result['extension'] . '/total/' . $result['code']);
 
-			if ($files) {
-				foreach ($files as $file) {
-					$result = $this->load->controller('extension/total/' . basename($file, '.php'));
-
-					if ($result) {
+					if (!$result instanceof \Exception) {
 						$data['modules'][] = $result;
 					}
 				}
@@ -250,10 +248,10 @@ class ControllerCheckoutCart extends Controller {
 		}
 	}
 
-	public function add() {
+	public function add(): void {
 		$this->load->language('checkout/cart');
 
-		$json = array();
+		$json = [];
 
 		if (isset($this->request->post['product_id'])) {
 			$product_id = (int)$this->request->post['product_id'];
@@ -275,7 +273,7 @@ class ControllerCheckoutCart extends Controller {
 			if (isset($this->request->post['option'])) {
 				$option = array_filter($this->request->post['option']);
 			} else {
-				$option = array();
+				$option = [];
 			}
 
 			// If variant get master product
@@ -305,7 +303,7 @@ class ControllerCheckoutCart extends Controller {
 			$recurrings = $this->model_catalog_product->getProfiles($product_info['product_id']);
 
 			if ($recurrings) {
-				$recurring_ids = array();
+				$recurring_ids = [];
 
 				foreach ($recurrings as $recurring) {
 					$recurring_ids[] = $recurring['recurring_id'];
@@ -327,7 +325,7 @@ class ControllerCheckoutCart extends Controller {
 				unset($this->session->data['payment_method']);
 				unset($this->session->data['payment_methods']);
 			} else {
-				$json['redirect'] = str_replace('&amp;', '&', $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $this->request->post['product_id']));
+				$json['redirect'] = $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $this->request->post['product_id'], true);
 			}
 		}
 
@@ -335,36 +333,46 @@ class ControllerCheckoutCart extends Controller {
 		$this->response->setOutput(json_encode($json));
 	}
 
-	public function edit() {
+	public function edit(): void {
 		$this->load->language('checkout/cart');
 
-		$json = array();
+		$json = [];
 
 		// Update
 		if (!empty($this->request->post['quantity'])) {
-			foreach ($this->request->post['quantity'] as $key => $value) {
-				$this->cart->update($key, $value);
+			// Handles single item update
+			if (!empty($this->request->post['key'])) {
+				$key = $this->request->post['key'];
+				$quantity = (int)$this->request->post['quantity'];
+
+				$this->cart->update($key, $quantity);
+
+				$json['success'] = $this->language->get('text_remove');
+			} else {
+				foreach ($this->request->post['quantity'] as $key => $value) {
+					$this->cart->update($key, $value);
+				}
+
+				$this->session->data['success'] = $this->language->get('text_remove');
+
+				unset($this->session->data['shipping_method']);
+				unset($this->session->data['shipping_methods']);
+				unset($this->session->data['payment_method']);
+				unset($this->session->data['payment_methods']);
+				unset($this->session->data['reward']);
+
+				$this->response->redirect($this->url->link('checkout/cart', 'language=' . $this->config->get('config_language')));
 			}
-
-			$this->session->data['success'] = $this->language->get('text_remove');
-
-			unset($this->session->data['shipping_method']);
-			unset($this->session->data['shipping_methods']);
-			unset($this->session->data['payment_method']);
-			unset($this->session->data['payment_methods']);
-			unset($this->session->data['reward']);
-
-			$this->response->redirect($this->url->link('checkout/cart', 'language=' . $this->config->get('config_language')));
 		}
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
 	}
 
-	public function remove() {
+	public function remove(): void {
 		$this->load->language('checkout/cart');
 
-		$json = array();
+		$json = [];
 
 		// Remove
 		if (isset($this->request->post['key'])) {

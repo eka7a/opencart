@@ -32,34 +32,33 @@ Upgrade
 
 8. Replace the files
 */
-class ControllerToolUpgrade extends Controller {
-    public function index() {
+namespace Opencart\Admin\Controller\Tool;
+class Upgrade extends \Opencart\System\Engine\Controller {
+	public function index(): void {
 		$this->load->language('tool/upgrade');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
-		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'] = [];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('heading_title'),
 			'href' => $this->url->link('tool/upgrade', 'user_token=' . $this->session->data['user_token'])
-		);
-
-		$data['user_token'] = $this->session->data['user_token'];
+		];
 
 		$data['version'] = VERSION;
 		$data['upgrade'] = false;
 
-		$request_data['extension'] = array();
+		$request_data['extension'] = [];
 
 		$this->load->model('setting/extension');
 
-		$results = $this->model_setting_extension->getInstalls(0, 1000);
+		$results = $this->model_setting_extension->getInstalls();
 
 		foreach ($results as $result) {
 			if ($result['extension_id']) {
@@ -69,7 +68,6 @@ class ControllerToolUpgrade extends Controller {
 
 		$curl = curl_init(OPENCART_SERVER . 'index.php?route=api/upgrade');
 
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_FORBID_REUSE, 1);
 		curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);
@@ -84,7 +82,7 @@ class ControllerToolUpgrade extends Controller {
 		$response_info = json_decode($response, true);
 
 		// Extension compatibility check
-		$data['extensions'] = array();
+		$data['extensions'] = [];
 
 		if ($response_info) {
 			if (version_compare(VERSION, $response_info['version'], '>=')) {
@@ -118,12 +116,12 @@ class ControllerToolUpgrade extends Controller {
 								}
 							}
 
-							$data['extensions'][] = array(
+							$data['extensions'][] = [
 								'name'       => $extension['name'],
-								'link'       => $this->url->link('marketplace/marketplace/info', 'user_token=' . $this->session->data['user_token'] . '&extension_id=' . $result['extension_id']),
+								'link'       => $this->url->link('marketplace/marketplace|info', 'user_token=' . $this->session->data['user_token'] . '&extension_id=' . $result['extension_id']),
 								'compatible' => $compatible,
 								'available'  => $available
-							);
+							];
 						}
 					}
 				}
@@ -133,7 +131,9 @@ class ControllerToolUpgrade extends Controller {
 		}
 
 		$data['backup'] = $this->url->link('tool/backup', 'user_token=' . $this->session->data['user_token']);
-    	$data['opencart_account'] = 'https://www.opencart.com/index.php?route=account/account';
+		$data['opencart_account'] = 'https://www.opencart.com/index.php?route=account/account';
+
+		$data['user_token'] = $this->session->data['user_token'];
 
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
@@ -142,10 +142,10 @@ class ControllerToolUpgrade extends Controller {
 		$this->response->setOutput($this->load->view('tool/upgrade', $data));
 	}
 
-	public function modified() {
+	public function modified(): void {
 		$this->load->language('tool/upgrade');
 
-		$json = array();
+		$json = [];
 
 		if (!$this->user->hasPermission('modify', 'tool/upgrade')) {
 			$json['error'] = $this->language->get('error_permission');
@@ -156,7 +156,6 @@ class ControllerToolUpgrade extends Controller {
 
 			$curl = curl_init('https://www.opencart.com/index.php?route=api/modified/' . VERSION);
 
-			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 			curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 			curl_setopt($curl, CURLOPT_FORBID_REUSE, 1);
 			curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);
@@ -213,17 +212,17 @@ class ControllerToolUpgrade extends Controller {
 
 			$json['text'] = $this->language->get('text_unzip');
 
-			$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/upgrade/unzip', 'user_token=' . $this->session->data['user_token']));
+			$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/upgrade|unzip', 'user_token=' . $this->session->data['user_token']));
 		}
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
 	}
 
-	public function download() {
+	public function download(): void {
 		$this->load->language('tool/upgrade');
 
-		$json = array();
+		$json = [];
 
 		if (isset($this->request->get['version'])) {
 			$version = $this->request->get['version'];
@@ -235,7 +234,7 @@ class ControllerToolUpgrade extends Controller {
 			$json['error'] = $this->language->get('error_permission');
 		}
 
-        if (!$json) {
+		if (!$json) {
 			set_time_limit(0);
 
 			$handle = fopen(DIR_DOWNLOAD . 'opencart-' . $version . '.zip', 'w');
@@ -243,7 +242,6 @@ class ControllerToolUpgrade extends Controller {
 			$curl = curl_init('https://github.com/opencart/opencart/archive/' . $version . '.zip');
 
 			curl_setopt($curl, CURLOPT_USERAGENT, 'OpenCart ' . VERSION);
-			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 			curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
 			curl_setopt($curl, CURLOPT_FORBID_REUSE, 1);
 			curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);
@@ -261,7 +259,7 @@ class ControllerToolUpgrade extends Controller {
 			if ($status == 200) {
 				$json['text'] = $this->language->get('text_unzip');
 
-				$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/upgrade/unzip', 'user_token=' . $this->session->data['user_token'] . '&version=' . $version));
+				$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/upgrade|unzip', 'user_token=' . $this->session->data['user_token'] . '&version=' . $version));
 			} else {
 				$json['error'] = $this->language->get('error_download');
 			}
@@ -271,10 +269,10 @@ class ControllerToolUpgrade extends Controller {
 		$this->response->setOutput(json_encode($json));
 	}
 
-    public function unzip() {
+	public function unzip(): void {
 		$this->load->language('tool/upgrade');
 
-		$json = array();
+		$json = [];
 
 		if (isset($this->request->get['version'])) {
 			$version = $this->request->get['version'];
@@ -294,7 +292,7 @@ class ControllerToolUpgrade extends Controller {
 
 		if (!$json) {
 			// Unzip the files
-			$zip = new ZipArchive();
+			$zip = new \ZipArchive();
 
 			if ($zip->open($file)) {
 				$zip->extractTo(DIR_DOWNLOAD . 'opencart-' . $version);
@@ -302,7 +300,7 @@ class ControllerToolUpgrade extends Controller {
 
 				$json['text'] = $this->language->get('text_move');
 
-				$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/upgrade/move', 'user_token=' . $this->session->data['user_token'] . '&version=' . $version));
+				$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/upgrade|move', 'user_token=' . $this->session->data['user_token'] . '&version=' . $version));
 			} else {
 				$json['error'] = $this->language->get('error_unzip');
 			}
@@ -312,10 +310,10 @@ class ControllerToolUpgrade extends Controller {
 		$this->response->setOutput(json_encode($json));
 	}
 
-	public function move() {
+	public function move(): void {
 		$this->load->language('tool/upgrade');
 
-		$json = array();
+		$json = [];
 
 		if (isset($this->request->get['version'])) {
 			$version = $this->request->get['version'];
@@ -334,15 +332,15 @@ class ControllerToolUpgrade extends Controller {
 		}
 
 		if (!$json) {
-			$ignore = array(
+			$ignore = [
 				'config-dist.php',
 				'admin/config-dist.php'
-			);
+			];
 
-			$files = array();
+			$files = [];
 
 			// Get a list of files ready to upload
-			$path = array($directory . '/*');
+			$path = [$directory . '/*'];
 
 			while (count($path) != 0) {
 				$next = array_shift($path);
@@ -397,17 +395,17 @@ class ControllerToolUpgrade extends Controller {
 
 			$json['text'] = $this->language->get('text_remove');
 
-			$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/upgrade/remove', 'user_token=' . $this->session->data['user_token'] . '&version=' . $version));
+			$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/upgrade|remove', 'user_token=' . $this->session->data['user_token'] . '&version=' . $version));
 		}
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
 	}
 
-	public function remove() {
+	public function remove(): void {
 		$this->load->language('tool/upgrade');
 
-		$json = array();
+		$json = [];
 
 		if (isset($this->request->get['version'])) {
 			$version = $this->request->get['version'];
@@ -422,7 +420,6 @@ class ControllerToolUpgrade extends Controller {
 		if (!$json) {
 			$curl = curl_init(OPENCART_SERVER . 'index.php?route=api/upgrade/remove&version=' . VERSION);
 
-			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 			curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 			curl_setopt($curl, CURLOPT_FORBID_REUSE, 1);
 			curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);
@@ -470,7 +467,7 @@ class ControllerToolUpgrade extends Controller {
 
 				$json['text'] = $this->language->get('text_db');
 
-				$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/upgrade/db', 'user_token=' . $this->session->data['user_token'] . '&version=' . $version));
+				$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/upgrade|db', 'user_token=' . $this->session->data['user_token'] . '&version=' . $version));
 			} else {
 				$data['error'] = $this->language->get('error_connection');
 			}
@@ -480,47 +477,10 @@ class ControllerToolUpgrade extends Controller {
 		$this->response->setOutput(json_encode($json));
 	}
 
-	public function db() {
+	public function clear(): void {
 		$this->load->language('tool/upgrade');
 
-		$json = array();
-
-		if (isset($this->request->get['version'])) {
-			$version = $this->request->get['version'];
-		} else {
-			$version = '';
-		}
-
-		if (!$this->user->hasPermission('modify', 'tool/upgrade')) {
-			$json['error'] = $this->language->get('error_permission');
-		}
-
-		if (!$json) {
-			$files = glob(DIR_APPLICATION .  'model/upgrade/*.php');
-
-			if ($files) {
-				foreach ($files AS $file) {
-					$upgrade = basename($file, '.php');
-
-					$this->load->model('upgrade/' . $upgrade);
-
-					$this->{'model_upgrade_' . $upgrade}->upgrade();
-				}
-			}
-
-			$json['text'] = $this->language->get('text_clear');
-
-			$json['next'] = str_replace('&amp;', '&', $this->url->link('tool/upgrade/clear', 'user_token=' . $this->session->data['user_token'] . '&version=' . $version));
-		}
-
-		$this->response->addHeader('Content-Type: application/json');
-		$this->response->setOutput(json_encode($json));
-	}
-
-	public function clear() {
-		$this->load->language('tool/upgrade');
-
-		$json = array();
+		$json = [];
 
 		if (isset($this->request->get['version'])) {
 			$version = $this->request->get['version'];
@@ -537,15 +497,15 @@ class ControllerToolUpgrade extends Controller {
 
 			if (is_dir($directory)) {
 				// Get a list of files ready to upload
-				$files = array();
+				$files = [];
 
-				$path = array($directory);
+				$path = [$directory];
 
 				while (count($path) != 0) {
 					$next = array_shift($path);
 
 					// We have to use scandir function because glob will not pick up dot files.
-					foreach (array_diff(scandir($next), array('.', '..')) as $file) {
+					foreach (array_diff(scandir($next), ['.', '..']) as $file) {
 						$file = $next . '/' . $file;
 
 						if (is_dir($file)) {
