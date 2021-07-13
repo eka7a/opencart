@@ -346,7 +346,7 @@
 									<label class="col-sm-2 col-form-label">{{ entry_subtract }}</label>
 									<div class="col-sm-10">
 										<div class="input-group">
-											<div class="btn-group btn-group-toggle" data-bs-toggle="buttons" id="input-subtract">
+											<div class="btn-group" id="input-subtract">
 												{% if subtract %}
 													<label class="btn btn-outline-secondary active"><input type="radio" name="subtract" value="1" class="btn-check" checked="checked"/> {{ text_yes }}</label>
 													<label class="btn btn-outline-secondary"><input type="radio" name="subtract" value="0" class="btn-check"/> {{ text_no }}</label>
@@ -412,7 +412,7 @@
 									<label class="col-sm-2 col-form-label">{{ entry_shipping }}</label>
 									<div class="col-sm-10">
 										<div class="input-group">
-											<div class="btn-group btn-group-toggle" data-bs-toggle="buttons" id="input-shipping">
+											<div class="btn-group" id="input-shipping">
 												{% if shipping %}
 													<label class="btn btn-outline-secondary active"><input type="radio" name="shipping" value="1" class="btn-check" checked="checked"/> {{ text_yes }}</label>
 													<label class="btn btn-outline-secondary"><input type="radio" name="shipping" value="0" class="btn-check"/> {{ text_no }}</label>
@@ -2087,7 +2087,6 @@ $('#button-image').on('click', function() {
     html += '  <td><div class="card image">';
     html += '    <img src="{{ placeholder }}" alt="" title="" id="thumb-image-' + image_row + '" data-oc-placeholder="{{ placeholder }}" class="card-img-top"/> <input type="hidden" name="product_image[' + image_row + '][image]" value="" id="input-image-' + image_row + '"/>';
     html += '    <div class="card-body">';
-    html += '      <button type="button" data-oc-toggle="image" data-oc-target="#input-image-' + image_row + '" data-oc-thumb="#thumb-image-' + image_row + '" class="btn btn-primary btn-sm btn-block"><i class="fas fa-pencil-alt"></i> {{ button_edit }}</button>';
     html += '      <button type="button" data-oc-toggle="image" data-oc-target="#input-image-' + image_row + '" data-oc-thumb="#thumb-image-' + image_row + '" class="btn btn-primary btn-sm btn-block"><i class="fas fa-pencil-alt"></i> {{ button_edit }}</button>';
     html += '      <button type="button" data-oc-toggle="clear" data-oc-target="#input-image-' + image_row + '" data-oc-thumb="#thumb-image-' + image_row + '" class="btn btn-warning btn-sm btn-block"><i class="fas fa-trash-alt"></i> {{ button_clear }}</button>';
     html += '    </div>';

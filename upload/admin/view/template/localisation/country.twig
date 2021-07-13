@@ -19,7 +19,7 @@
 	</div>
 	<div class="container-fluid">
 		<div class="row">
-			<div id="filter-country" class="col-md-3 col-sm-12 order-lg-last d-none d-md-block mb-3">
+			<div id="filter-country" class="col-lg-3 col-md-12 order-lg-last d-none d-lg-block mb-3">
 				<div class="card">
 					<div class="card-header"><i class="fas fa-filter"></i> {{ text_filter }}</div>
 					<div class="card-body">
@@ -32,13 +32,13 @@
 						<div class="mb-3">
 							<label class="form-label">{{ entry_iso_code_3 }}</label> <input type="text" name="filter_iso_code_3" value="{{ filter_iso_code_3 }}" placeholder="{{ entry_iso_code_3 }}" id="input-iso-code-3" class="form-control"/>
 						</div>
-						<div class="mb-3 text-end">
+						<div class="text-end">
 							<button type="button" id="button-filter" class="btn btn-light"><i class="fas fa-filter"></i> {{ button_filter }}</button>
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="col-md-9 col-sm-12">
+			<div class="col-lg-9 col-md-12">
 				<div class="card">
 					<div class="card-header"><i class="fas fa-list"></i> {{ text_list }}</div>
 					<div id="country" class="card-body">{{ list }}</div>
